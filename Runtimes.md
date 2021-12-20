@@ -22,54 +22,79 @@ And these for `amd64`:
 -Xmx800M -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=16M
 ```
 
-This is how a Java runtime could be referenced in a Minecraft version:
+### Runtime reference in version metadata
+
+This is how a Java runtime could be referenced in each Minecraft version:
 ```json
 {
     "runtime": {
-        "majorVersion": 17,
-        "mojangReference": "java-runtime-beta",
+        "minVersion": 7,
         "variables": {
-            "x86": {
-                "maxHeap": "800M",
-                "minStack": "1M"
-            },
-            "amd64": {
-                "maxHeap": "2048M"
+            "all": {
+                "x86": {
+                    "maxHeap": 800,
+                    "heapRegionSize": 16
+                },
+                "amd64": {
+                    "maxHeap": 2048,
+                    "heapRegionSize": 32,
+                    "minStack": 1
+                }
             }
         }
     }
 }
 ```
 
-This is how a Java runtime could be referenced in a Minecraft version, with slightly different defaults:
+This is how a Java runtime could be referenced in each Minecraft version, with slightly different defaults:
 ```json
 {
     "runtime": {
-        "majorVersion": 17,
-        "mojangReference": "java-runtime-beta",
+        "minVersion": 17,
         "variables": {
             "windows": {
                 "x86": {
-                    "minHeap": "512M",
-                    "maxHeap": "1450M",
+                    "minHeap": 512,
+                    "maxHeap": 1450
                 }
             },
             "all": {
                 "x86": {
-                    "minHeap": "512M",
-                    "maxHeap": "2048M",
-                    "minStack": "1M"
+                    "minHeap": 512,
+                    "maxHeap": 2048
                 },
                 "amd64": {
-                    "minHeap": "512M",
-                    "maxHeap": "2048M",
-                    "minStack": "1M"
+                    "minHeap": 512,
+                    "maxHeap": 2048,
+                    "minStack": 1
                 }
             }
         }
     }
 }
 ```
+
+`minVersion` and `maxVersion` together define the range of Java versions a particular component can accept:
+
+- `"minVersion": 17, "maxVersion": 17` means only version 17.
+- `"minVersion": 16, "maxVersion": 17` means either 16 or 17. Highest will be preferred when resolving versions.
+- `"minVersion": 7` means anything above and including version 7. Highest will be preferred.
+- `"maxVersion": 8` means anything below and including version 8. Highest will be preferred.
+
+If there are multiple components being composed together, range intersection operation is used to resolve the final set of eligible Java versions.
+
+**Hypothetical example:**
+
+- Minecraft X has `"minVersion": 6`
+- Minecraft Forge for X can only work with `"minVersion": 7, "maxVersion": 8`
+- When the ranges are composed together, the eligible versions are 7 and 8.
+- MultiMC will try to use these, in order:
+    - Mojang Java 8, as long as there is one for this platform/architecture)
+    - System Java 8, if present
+    - System Java 7, if present
+    - FAIL to resolve and show an error
+
+### Runtime reference in a modpack
 
 In a modpack (or instance), we could say there is an optimal heap size and minimal heap size:
 ```json
@@ -87,82 +112,101 @@ With this, we could:
 - Warn them harder if they have below minimum available memory
 - Determine the actual heap size dynamically based on the runtime, hardware, architecture and the instance/modpack variables.
 
+Actually specifying a Java version is probably not needed, but could be a thing.
+
 ## Runtimes
 
-- Every runtime has a major version.
-- Runtimes can come from Mojang
-    This is what we want to use by default.
-- Runtimes can be local
-    This is what we had up to now.
+Every major Java version has some properties.
 
-## Major versions
+Some versions can be mapped to a Mojang runtime, which is ready to use and available.
 
-The major version describes the basic properties of the runtime:
-- Feature set
-    - Is it valuable to model these in detail?
-- Possible garbage collectors?
-    - Is it valuable to model these in detail?
-- Basic (not vendor specific) set of arguments
-- Mapping of MultiMC traits and/or variables to arguments
+Every runtime has a major version - even locally installed ones - and it can be probed.
 
-## Garbage collectors and runtime parameters
+We would have a simple runtime registry that ties major versions of Java to piston coordinates and various other properties.
 
-This is a deep topic. We may simply want to have some default GC options for every major version of Java and let people override them.
+The piston components can be discovered from:
+https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json
 
-Alternative is to map out all of these options and pick based on:
-- Java version
-- Available number of cores
-- Size of heap
-- etc.
+This can be internally hardcoded, and only the name of the component needs to be in the MultiMC metadata.
 
-Mojang practically uses Java 8, 16 and 17. Others do not have to be mapped out completely.
+On launch, we would load the piston index and runtime metadata files from local cache and then attempt to fetch updated ones (with usual online/offline/missing states).
 
-We can use the Java 8 options for all major versions up to 16.
+### Example of a possible metadata file describing all runtimes:
+```json
+[
+    {
+        "majorVersion": 7,
+        "managedArgs": {
+            "minHeap": "-Xms ${value}m",
+            "maxHeap": "-Xmx ${value}m",
+            "minStack": "-Xss ${value}m",
+            "permSize": "-XX:PermSize=${value}m",
+            "startOnFirstThread": "-XstartOnFirstThread"
+        },
+        "hardArgs": [
+            "-XX:+UseG1GC",
+            "-XX:G1NewSizePercent=20",
+            "-XX:G1ReservePercent=20",
+            "-XX:MaxGCPauseMillis=50",
+            "-XX:G1HeapRegionSize=${heapRegionSize}m",
+        ]
+    },
+    {
+        "majorVersion": 8,
+        "pistonComponent": "jre-legacy",
+        "managedArgs": {
+            "minHeap": "-Xms ${value}M",
+            "maxHeap": "-Xmx ${value}M",
+            "minStack": "-Xss ${value}M",
+            "startOnFirstThread": "-XstartOnFirstThread"
+        },
+        "hardArgs": [
+            "-XX:+UseG1GC",
+            "-XX:G1NewSizePercent=20",
+            "-XX:G1ReservePercent=20",
+            "-XX:MaxGCPauseMillis=50",
+            "-XX:G1HeapRegionSize=${heapRegionSize}m",
+        ]
+    },
+    {
+        "majorVersion": 16,
+        "pistonComponent": "java-runtime-alpha",
+        "managedArgs": {
+            "minHeap": "-Xms ${value}m",
+            "maxHeap": "-Xmx ${value}m",
+            "minStack": "-Xss ${value}m",
+            "startOnFirstThread": "-XstartOnFirstThread"
+        },
+        "hardArgs": [
+            "-XX:+UseZGC"
+        ]
+    },
+    {
+        "majorVersion": 17,
+        "pistonComponent": "java-runtime-beta",
+        "managedArgs": {
+            "minHeap": "-Xms ${value}m",
+            "maxHeap": "-Xmx ${value}m",
+            "minStack": "-Xss ${value}m",
+            "startOnFirstThread": "-XstartOnFirstThread"
+        },
+        "hardArgs": [
+            "-XX:+UseZGC"
+        ]
+    }
+]
+```
 
-We can use the Java 17 options for all versions above 17, until specified otherwise.
+Anything below lowest major version (currently Java 7) is not supported by MultiMC.
+Args from a major version propagate to any higher version that lacks a definition in the metadata, with the exception of `pistonComponent`.
 
-### Java 8
+So, for example, when JRE overrides are enabled:
+- User selects system Java 7.
+    - Only hardcoded args are used.
 
-https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/collectors.html
+- User selects system Java 11.
+    - Args from `8` and hardcoded args are used.
 
-#### Unusable GCs
+- User selects system Java 18.
+    - Args from `17` and hardcoded args are used.
 
-- **SerialGC** - `-XX:+UseSerialGC` - Serial collection of up to 100MB heap space. Useless for Minecraft.
-- **ParallelGC** - `-XX:+UseParallelGC` - high latency parallel collector. Useless for Minecraft.
-- **ParallalGC with parallel compaction disabled** - `-XX:+UseParallelGC -XX:-UseParallelOldGC` - Why? It's just slower...
-
-#### Potentially usable GCs
-
-https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/concurrent.html#mostly_concurrent
-
-- **UseConcMarkSweepGC** - `-XX:+UseConcMarkSweepGC` - parallel, shares processing time with GC.
-   - Incremental Mode (deprecated):
-     This is useful on machines with one core, if we want to guarantree low latency.
-     https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/cms.html#CJAGIIEJ
-- **G1GC** - `-XX:+UseG1GC` - parallel, GC cycles run next to the actual computation.
-
-#### Conclusion
-
-By the looks of it, for Minecraft, only G1GC makes sense.
-
-We could just say that `-XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=16M` are the default args here, and combine that with stack, permgen and heap sizes.
-
-The argument for modeling this would be running on VERY old hardware - think single core system with 2GB of memory. Then **ConcMarkSweepGC** with **Incremental Mode** could make sense.
-
-Knowing we run with such constraints and selecting different GC based on it would be helpful to users of such systems.
-
-### Java 16 and 17
-
-https://docs.oracle.com/en/java/javase/16/gctuning/available-collectors.html
-
-This adds the the Z Garbage Collector, which is fully parallel and aims for low latency (a few ms, still a lot for games, but better than the alternatives).
-
-#### Conclusion
-
-Practically, ZGC should be used: `-XX:+UseZGC`.
-
-See: https://docs.oracle.com/en/java/javase/16/gctuning/z-garbage-collector.html
-
-Interesting parameters:
-- Number of GC threads - `-XX:ConcGCThreads` - possibly the default heuristics would be OK.
-- Returning memory to the system is enabled by default, and can be disabled with `-XX:-ZUncommit`.
