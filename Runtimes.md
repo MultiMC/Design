@@ -210,3 +210,10 @@ So, for example, when JRE overrides are enabled:
 - User selects system Java 18.
     - Args from `17` and hardcoded args are used.
 
+`managedArgs` are managed by MultiMC and not directly visible to the user. They depend on the left hand side (variable by name) being set in order to be passed to Java. If there is no defined value of `minHeap`, `-Xms ${value}m` is not passed to the JRE.
+
+`startOnFirstThread` is then only specified on macOS, and replaces the current trait-based logic.
+
+`hardArgs` are hardcoded, but do show up in the UI as 'default'/'ghost' and can be customized. Variables can be substituted into hardcoded args (like `heapRegionSize` for G1GC).
+
+How the values for the variables are determined is internal to MultiMC and tuned to work well on all machines over time.
