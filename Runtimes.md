@@ -322,3 +322,45 @@ JvmArgs=-verbose:gc
 ```
 
 The `OverrideJava` turns into `OverrideJavaArgs` and `OverrideJavaLocation` on instance settings save.
+
+## Approach
+
+- Remove the globals. They could be reintroduced later, but let's not delve into that at this point.
+- Add a global JRE manager
+   - It scans for local JREs
+   - It downloads and caches the JRE metadata file
+   - It downloads and caches the piston metadata for available/references Mojang JREs
+   - It determines the state of installation for the Mojang JREs
+- Each instance determines its Java runtime major version range based on dependency constraints
+
+    - Then this can be fed into a model for selecting a JRE from the JRE manager
+    - Instance needs to track the selected JRE
+    - If there is no selected JRE, determine it dynamically
+        - Mojang JREs are prefered over local JREs, regardless of JRE version
+        - Highest possible version of the range is picked otherwise
+        - If nothing is picked, raise an error
+            - Needs UI
+    - If the use selected JRE becomes unavailable or no longer fits in the JRE version range, raise an error
+        - Needs UI
+- In the instance settings, the user can:
+    - Select a JRE out of one of the detected ones, or manually browse for a binary
+       - Mojang = essentially nothing selected - you get that when you keep this full auto
+       - Manual selection of a path needs to run a check on the JRE
+    - Set/unset the target heap size
+    - Set/unset the target permgen size for Java 7
+    - Add to or override the args
+
+### Questions:
+- What is a reference to a JRE in the instance settings?
+    - Absolute/relative binary path?
+    - UUID -> JRE manager?
+    - Optional<T> of some sort?
+    - All of the above?
+
+- How do we preserve (if at all) the global args?
+    - Maybe just tell user that these are no longer used?
+    - Maybe turn it into something that's added extra to args of all instances?
+        - Think `-verbose:gc` - this is generally useful, but you don't want to type it in everywhere...
+
+- How do we handle the global memory settings?
+    - Keeping the current system for this?
