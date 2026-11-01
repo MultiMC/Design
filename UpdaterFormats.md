@@ -355,6 +355,8 @@ order).
   too. At most 512 characters.
 - No two paths are the same when compared case-insensitively (macOS and Windows file systems
   usually aren't case-sensitive), and no path is a directory of another file's path.
+- The same goes for directories: each directory is spelled the same way in every path that
+  goes through it (not `Versions/A` in one and `versions/B` in another).
 - `sha256` and `size`: of the file's content. The content file is `files/<first two
   digits>/<sha256>`. Empty files are allowed.
 - `executable`: `true` for files installed with mode 0755, `false` for 0644. On Windows it
