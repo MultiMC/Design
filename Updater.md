@@ -347,6 +347,64 @@ Moving the data out of the program needs a careful migration: the existing insta
 a way back if it fails part way, and without losing anything. It deserves its own design
 and testing, on files2 first.
 
+## Building it
+
+Decided 2026-11-01: the new updater is built in the Launcher's `develop` branch, behind a
+feature toggle. repoman stays as it is (it stops mattering after the cutover); its
+replacement, which writes the new layout, is built separately.
+
+Every push to `develop` is a release, so what this means in practice:
+
+### In the Launcher
+
+- **The toggle is a CMake option**, off by default (for example `Launcher_NEW_UPDATER`), not
+  a runtime setting. Production builds then don't contain the new code path at all, and no
+  hidden setting or broken config can move users onto an unfinished updater. hopper passes
+  `Launcher_*` options per setup, so the files2 setup turns it on and files2 is where the new
+  updater runs until the cutover.
+- **Pinned keys are per setup**, like `UPDATER_BASE`. files2 has its own test root keys. The
+  compatibility gate checks that a production build pins exactly the production root keys,
+  so a test key can never reach users.
+- **Monocypher is linked statically**, so the gate's file lists don't change. It has to
+  build with all four toolchains (g++ 5, MinGW 4.9.2 for XP, osxcross clang); the gate and
+  the unit tests show that it does.
+- **Updater state.** The Launcher stores the highest pointer serial and keys document
+  version it has verified, next to the Launcher (the current data layout). Each build also
+  has floors for both compiled in. If the stored state is lost or broken, the Launcher falls
+  back to the floors and keeps updating; that only weakens the replay protection a little.
+- **Settings.** The tier setting is new. It must not take over the existing update channel
+  setting (ignored today), or `develop` users would land on Latest instead of Stable. The
+  tier selector only exists in builds with the toggle on.
+
+### Before the cutover
+
+- **Old Launchers take any different build number**, not only a higher one
+  (`UpdateChecker.cpp` compares with `!=`). So in the current layout, removing the newest
+  build sends every old Launcher back to the previous one. Once the layout freezes, the
+  bridge build must keep the highest `Id` there for good and must never be removed.
+- **The root keys are made first.** They are compiled into the bridge build, so the key
+  ceremony comes before it, not at the end.
+- **Both layouts in one tree.** The current layout stores files by MD5, the new one by
+  SHA-256, so files exist twice while both are written. Only the new layout counts toward
+  the retention cap; the frozen one doesn't grow.
+
+### The cutover
+
+- **Order.** The replacement publisher, signing and the online key are live in production,
+  and the bridge build is Stable in the new layout, before the bridge build is published in
+  the current layout. Otherwise the bridge's first update check finds nothing.
+- **The freeze is enforced by hopper.** After the bridge build, the production deploy no
+  longer runs repoman, and refuses to (a setting naming the build the current layout is
+  frozen at), rather than just not doing it. Otherwise the next push to `develop` would
+  quietly publish into the frozen layout again.
+- **Rehearsed on files2 first, exactly:** install a files2 build with the toggle off, publish
+  a bridge build with it on into files2's current layout, freeze that layout, and check that
+  the installed Launcher moves over and lands on Stable. files2 numbers its builds
+  separately, so production is not touched.
+- **Changing at the same time:** the website's downloads (new installs get the Stable
+  packages written when a tag moves, not `mmc-develop-*`) and the translations template
+  trigger (on tagging Testing or Stable).
+
 ## Open questions
 
 None at the moment.
