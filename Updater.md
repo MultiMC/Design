@@ -161,7 +161,9 @@ needs:
 
 The Launcher checks these before it offers or applies an update. If the machine doesn't
 meet them, the Launcher stays on its current build and tells the user why (for example
-"needs macOS 10.13"). This replaces the platform moves hard-coded in `getIdealPlatform()`.
+"needs macOS 10.13"). This replaces the platform moves hard-coded in `getIdealPlatform()`:
+one machine may run several variants of a build, and a variant can supersede another, which
+moves Launchers over (see [UpdaterFormats.md](UpdaterFormats.md), Variants).
 
 ### Relative URLs in the manifests
 
@@ -363,7 +365,7 @@ The work splits into parts that can mostly be built and introduced on their own 
 1. **The formats.** The build manifest, the tag pointers, the keys document, the signature
    files and the tree layout, as a short spec in this repo, with a validator script in
    hopper that the publisher and the tests both use. Everything else reads or writes these,
-   so this comes first.
+   so this comes first. The spec: [UpdaterFormats.md](UpdaterFormats.md).
 2. **Requirements from the compatibility gate** (hopper). `compat-check.py` already measures
    what each binary needs: minimum macOS, PE subsystem version, the highest GLIBC and
    GLIBCXX symbol versions, the Qt libraries. Recording the measured values in each
@@ -388,7 +390,9 @@ The work splits into parts that can mostly be built and introduced on their own 
 8. **Launcher: the new client**, behind the toggle, needing 1, 6 and 7. Mirrors, relative
    URLs, the keys document and pointers, the stored state with its floors, the tier choice
    and the requirement checks. It reuses the existing apply step (`UpdateController`,
-   `OperationList`) unchanged, so the part that swaps files on disk isn't touched.
+   `OperationList`) unchanged, so the part that swaps files on disk isn't touched. One
+   exception: the manifests list symbolic links (macOS frameworks need them), and the apply
+   step only knows replace and delete, so it gains an operation that creates a link.
 9. **The release web UI**, on top of the scripts from 5. Until it exists, the scripts are
    run by hand.
 10. **The cutover**: the freeze in hopper, the website's downloads, the translations
