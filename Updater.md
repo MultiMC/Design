@@ -355,6 +355,49 @@ replacement, which writes the new layout, is built separately.
 
 Every push to `develop` is a release, so what this means in practice:
 
+### Components
+
+The work splits into parts that can mostly be built and introduced on their own (noted
+2026-11-01):
+
+1. **The formats.** The build manifest, the tag pointers, the keys document, the signature
+   files and the tree layout, as a short spec in this repo, with a validator script in
+   hopper that the publisher and the tests both use. Everything else reads or writes these,
+   so this comes first.
+2. **Requirements from the compatibility gate** (hopper). `compat-check.py` already measures
+   what each binary needs: minimum macOS, PE subsystem version, the highest GLIBC and
+   GLIBCXX symbol versions, the Qt libraries. Recording the measured values in each
+   release's `manifest.json` gives the new manifests their requirements from the binaries
+   themselves, not written by hand. Changes nothing for users.
+3. **Key tooling.** The offline scripts (make a key, write and sign the keys document,
+   verify it) and test keys for files2. The production root keys are only needed before
+   the bridge build, but the tooling can be finished and rehearsed early.
+4. **The new publisher**, repoman's replacement (hopper). It reads a release and writes the
+   new layout: content-addressed files, a manifest per build, signed pointers. It runs on
+   files2 first, then in production as a shadow: a real new-layout tree on both hosts that
+   no Launcher reads yet, so real publishes test it long before the cutover.
+5. **Tag operations** (hopper). Tag Testing, promote to Stable, remove a build, retention,
+   and writing the download archives on a tag move: one script each, on the tree from 4.
+   They can run in shadow too.
+6. **Launcher: signature checks.** Monocypher vendored, a function that checks a signature
+   over bytes, and unit tests against signatures made with `openssl`. Nothing calls it yet,
+   so it can land without the toggle, and it shows early that all four toolchains build it.
+7. **Launcher: system detection.** Reading the OS version, CPU architecture, and glibc and
+   Qt versions at runtime, and comparing them with a set of requirements. Useful on its own
+   (the log, system information), so it lands without the toggle.
+8. **Launcher: the new client**, behind the toggle, needing 1, 6 and 7. Mirrors, relative
+   URLs, the keys document and pointers, the stored state with its floors, the tier choice
+   and the requirement checks. It reuses the existing apply step (`UpdateController`,
+   `OperationList`) unchanged, so the part that swaps files on disk isn't touched.
+9. **The release web UI**, on top of the scripts from 5. Until it exists, the scripts are
+   run by hand.
+10. **The cutover**: the freeze in hopper, the website's downloads, the translations
+    template trigger (see below).
+
+Order: 1 first; then 2, 3, 6 and 7, which are small and independent of each other; then 4
+and 5, running in shadow; then 8 against files2; then 9; then the rehearsal on files2 and
+the cutover. 4 and 5 are most of the server side, 8 most of the Launcher work.
+
 ### In the Launcher
 
 - **The toggle is a CMake option**, off by default (for example `Launcher_NEW_UPDATER`), not
