@@ -37,9 +37,9 @@ Decided 2026-11-01. This is format 1.
   files/<xx>/<sha256>   content files, e.g. files/9f/9f86d0...0a08
 ```
 
-The root is a directory of its own on each host (for example `updater/` on the files server),
-apart from the current layout's `update/` and `files/`. Where it is on each host is
-configuration: the compiled-in hosts and the mirror list give the root's full URL.
+The root is `updater/` on the files site, apart from the current layout's `update/` and
+`files/`. Its full URL on each copy is that copy's base URL with `updater/` appended; the
+base URLs are compiled in and come from the mirror list (below).
 
 - **Content files** are named by the SHA-256 of their content, as 64 lowercase hex digits,
   in a directory named by the first two of those digits. They hold the exact bytes of the
@@ -391,11 +391,11 @@ of format 1; the publisher refuses an installation tree with any other kind of s
   "issued": "2026-11-01T12:00:00Z",
   "mirrors": [
     [
-      "https://files.multimc.org/updater/"
+      "https://files.multimc.org/"
     ],
     [
-      "https://<bucket host>/updater/",
-      "https://<another mirror>/updater/"
+      "https://files-r2.multimc.org/",
+      "https://<another mirror>/"
     ]
   ]
 }
@@ -404,23 +404,31 @@ of format 1; the publisher refuses an installation tree with any other kind of s
 - `mirrors`: groups of base URLs, in order of priority. Each group is a list of one or more
   URLs; there is at least one group, and at most sixteen URLs in all, none of them twice.
   Each URL is `https://`, ends with `/`, and has no user info, query or fragment. Each is the
-  root of a full copy of the tree.
+  root of a full copy of the files site, not of the tree: the tree is at `updater/` under it
+  (changed 2026-11-02, before any Launcher read the list).
 - `issued`: when the list was written. The Launcher keeps the verified list with the latest
   `issued`, and ignores an older one, so an old list can't be replayed onto it.
 
-It is signed by an online key, so hopper can change it without the offline ceremony. A
-mirror is not trusted with anything: every document it serves is checked against its
-signature, and every content file against its hash.
+It is signed by an online key, so hopper can change it without the offline ceremony. For the
+updater, a mirror is not trusted with anything: every document it serves is checked against
+its signature, and every content file against its hash. The Launcher uses the list for the
+whole files site, so the parts of it that aren't signed (translations, notifications, ...)
+come from the copies it names too; those are ours, and trusted as the files server is (see
+[LauncherNetwork.md](LauncherNetwork.md)).
 
-How the Launcher picks a mirror:
+How the Launcher picks a mirror (its network layer does this for every site, see
+[LauncherNetwork.md](LauncherNetwork.md)):
 
 - It tries the groups in order: a group is only used when every mirror in the groups before
-  it has failed.
+  it has failed. The files server comes first because requests to a bucket cost money.
 - Within a group it picks the mirrors in random order, so the load spreads across them.
-- It stays with the mirror that answers for the whole update check and download, and moves
-  on to the next one only when that mirror fails (unreachable, an error, a document or file
-  that doesn't verify). Fetching everything from one mirror avoids mixing documents from
-  mirrors that are at different points of a sync.
+- Each request moves on to the next mirror when one fails: unreachable, an error, a missing
+  file, or a document or file that doesn't verify. The next request starts again from the
+  first group. A mirror that couldn't be reached is skipped for a few minutes.
+- It doesn't have to stay with one mirror for a whole check (changed 2026-11-02): every
+  document is checked against its signature and the serial, and every file against its
+  hash, so a mirror that lags behind a sync can only fail, not mix in anything that doesn't
+  fit.
 - After the list, it tries the compiled-in hosts that aren't in it, in their compiled-in
   order.
 

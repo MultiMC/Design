@@ -271,10 +271,16 @@ from; the signed data carries the current list of mirrors, so mirrors can change
 release.
 
 The compiled-in hosts (2026-11-01) are the two copies of the files we have: the files server
-(`files.multimc.org`) first, then the R2 bucket. The production bucket and its
-hostname don't exist yet. The entries are hostnames, not machines: if the files server is
-ever replaced, the same DNS entries are pointed at the new one, and nothing in the Launcher
-changes.
+(`files.multimc.org`) first, then the R2 bucket (`files-r2.multimc.org`, live and in sync;
+meta has one too, `meta-r2.multimc.org`). The entries are hostnames, not machines: if the
+files server is ever replaced, the same DNS entries are pointed at the new one, and nothing
+in the Launcher changes.
+
+Mirrors are not the updater's own (decided 2026-11-02): the Launcher's network layer has
+them for every site of ours (files, meta, the website), and every endpoint on a site uses
+them, the updater's tree among them. The signed mirror list names the files site's roots,
+not the updater tree's, so all of the files site follows it. See
+[LauncherNetwork.md](LauncherNetwork.md).
 
 This fits relative URLs and signed manifests: the Launcher can fetch the same signed tree
 from whichever mirror answers, and the signature, not the host, decides what it trusts.
@@ -387,29 +393,49 @@ The work splits into parts that can mostly be built and introduced on their own 
 7. **Launcher: system detection.** Reading the OS version, CPU architecture, and glibc and
    Qt versions at runtime, and comparing them with a set of requirements. Useful on its own
    (the log, system information), so it lands without the toggle.
-8. **Launcher: the new client**, behind the toggle, needing 1, 6 and 7. Mirrors, relative
-   URLs, the keys document and pointers, the stored state with its floors, the tier choice
-   and the requirement checks. It reuses the existing apply step (`UpdateController`,
-   `OperationList`) unchanged, so the part that swaps files on disk isn't touched. One
-   exception: the manifests list symbolic links (macOS frameworks need them), and the apply
-   step only knows replace and delete, so it gains an operation that creates a link.
+8. **Launcher: the new client**, behind the toggle, needing 1, 6 and 7. Relative URLs, the
+   keys document and pointers, the stored state with its floors, the tier choice and the
+   requirement checks. It reuses the existing apply step (`UpdateController`,
+   `OperationList`), so the part that swaps files on disk stays as it is, apart from links
+   (below). It is built on groundwork in the Launcher that lands first, each part on its
+   own, without the toggle, and changing nothing for users (decided 2026-11-02):
+   - **The network layer** ([LauncherNetwork.md](LauncherNetwork.md), Groundwork):
+     `Net::Download` gains a size limit, a way to bypass caches, a missing file told apart
+     from other failures, and a stall timeout; sites with mirrors and endpoints, with
+     fallback per request, for every download from our servers.
+   - **Strict JSON** in the Launcher's JSON helpers (`Json.h`): an exact set of keys, no
+     nulls, integers in a range. The formats are read with these, not with code of their
+     own.
+   - **Symbolic links in the apply step.** The manifests list links (macOS frameworks need
+     them), and the apply step only knows replace and delete, so it gains an operation that
+     creates a link (`QFile::link`), with a backup and rollback like the others. A change to
+     a link is applied, never refused. The current layout never asks for it, so the current
+     updater is unaffected.
+
+   A first attempt at the client (2026-11-02) worked against files2, but was set aside: it
+   had its own downloading and JSON parsing beside the Launcher's, its mirror logic only for
+   the updater, `#ifdef`s for the toggle, and it refused updates that change links.
 9. **The release web UI**, on top of the scripts from 5. Until it exists, the scripts are
    run by hand.
 10. **The cutover**: the freeze in hopper, the website's downloads, the translations
     template trigger (see below).
 
 Order: 1 first; then 2, 3, 6 and 7, which are small and independent of each other; then 4
-and 5, running in shadow; then 8 against files2; then 9; then the rehearsal on files2 and
-the cutover. 4 and 5 are most of the server side, 8 most of the Launcher work.
+and 5, running in shadow; then 8 against files2, its groundwork first; then 9; then the
+rehearsal on files2 and the cutover. 4 and 5 are most of the server side, 8 most of the
+Launcher work.
 
 ### In the Launcher
 
-- **The toggle is a CMake option**, off by default (for example `Launcher_NEW_UPDATER`), not
-  a runtime setting. Production builds then don't contain the new code path at all, and no
-  hidden setting or broken config can move users onto an unfinished updater. hopper passes
-  `Launcher_*` options per setup, so the files2 setup turns it on and files2 is where the new
-  updater runs until the cutover.
-- **Pinned keys are per setup**, like `UPDATER_BASE`. files2 has its own test root keys. The
+- **The toggle is a CMake option**, off by default (`Launcher_NEW_UPDATER`), not a runtime
+  setting. It ends up in BuildConfig as a value, like the URLs, and that value decides which
+  updater the Launcher creates (changed 2026-11-02). All code compiles in every build, with
+  no `#ifdef` for it, so production builds contain the new updater, but nothing reaches it,
+  and no hidden setting or broken config can move users onto an unfinished updater.
+  Changing the option only rebuilds BuildConfig. hopper passes `Launcher_*` options per
+  setup, so the files2 setup turns it on and files2 is where the new updater runs until the
+  cutover. The compatibility gate checks the value, not the absence of the code.
+- **Pinned keys are per setup**, like the sites' base URLs. files2 has its own test root keys. The
   compatibility gate checks that a production build pins exactly the production root keys,
   so a test key can never reach users.
 - **Monocypher is linked statically**, so the gate's file lists don't change. It has to
@@ -421,7 +447,7 @@ the cutover. 4 and 5 are most of the server side, 8 most of the Launcher work.
   back to the floors and keeps updating; that only weakens the replay protection a little.
 - **Settings.** The tier setting is new. It must not take over the existing update channel
   setting (ignored today), or `develop` users would land on Latest instead of Stable. The
-  tier selector only exists in builds with the toggle on.
+  tier selector is only shown in builds with the toggle on.
 
 ### Before the cutover
 
