@@ -82,7 +82,8 @@ Decided 2026-11-02.
   up by hash, with no request at all when it is already stored, and the same hash holds on
   every copy. Today meta goes through the HTTP meta cache and ETags instead. Moving it to a
   store keyed by hash (possibly a key-value store rather than many small files) is a task
-  of its own, after the sites exist.
+  of its own, after the sites exist. It may come with the new meta format
+  ([MetaFormat.md](MetaFormat.md)), which could also publish files by hash.
 - **The HTTP meta cache stays** for what it is mainly for: bigger downloads from external
   sources. Its entries are keyed by a base name and a path, not by host.
 
@@ -105,7 +106,11 @@ changes nothing for users until something uses it:
    `v1/`). `Net::Download` takes any URL on a site's base URL and falls back to the same
    path on the others (`Net::Mirrors`), so callers didn't change, and the current
    updater's absolute URLs on the files site fall back too. The news stays on the website.
-3. **Meta's cache by hash**, later and separately.
+3. **Meta's cache by hash**, later and separately, probably with the new meta format
+   ([MetaFormat.md](MetaFormat.md)).
 4. **Size limits where the size is known** (noted 2026-11-03), later: many downloads have a
    size known ahead of time (meta's entries, assets, libraries, package and runtime
    manifests). They should get a `Net::SizeValidator` and refuse anything larger.
+   Built 2026-11-03 for Mojang-format libraries (and the client jar), the asset index, assets,
+   translations and the files of a Modrinth pack (its `fileSize`, when present). Not for
+   ATLauncher, whose sizes are written by hand: a wrong one would break installs that work.
