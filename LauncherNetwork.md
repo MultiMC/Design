@@ -55,8 +55,9 @@ Decided 2026-11-02.
   or a validator that refuses the content (a wrong hash, a signature that doesn't verify).
   A missing file (404) moves on too: a copy that lags behind a sync may not have it yet.
 - **Per request.** Each request starts again from the first base URL, so the main server is
-  used whenever it is up. A base URL that couldn't be reached at all is skipped for a few
-  minutes, so an outage doesn't cost a timeout on every request.
+  used whenever it is up. A base URL that couldn't be reached at all is tried last for a few
+  minutes, so an outage doesn't cost a timeout on every request, yet it is still there if
+  every other copy fails.
 - **No need to stay on one copy.** Everything below a site's root is checked against
   something already trusted: meta's files against the hashes in the indexes above them, the
   updater's documents against their signatures and its files against their hashes. A copy
@@ -98,4 +99,13 @@ changes nothing for users until something uses it:
    path, fallback per request. Then meta, translations, notifications, the FML libraries and
    the news move onto them. The current updater stays as it is: its layout is frozen at the
    cutover and keeps its absolute URLs.
+   Built 2026-11-03: CMake's `Launcher_FILES_MIRRORS` and `Launcher_META_MIRRORS` (hopper's
+   `FILES_MIRRORS`, `META_MIRRORS`); every endpoint is the first base URL and its path
+   (`update/`, `notifications.json`, `translations/`, `fmllibs/`, `patrons.txt`, meta's
+   `v1/`). `Net::Download` takes any URL on a site's base URL and falls back to the same
+   path on the others (`Net::Mirrors`), so callers didn't change, and the current
+   updater's absolute URLs on the files site fall back too. The news stays on the website.
 3. **Meta's cache by hash**, later and separately.
+4. **Size limits where the size is known** (noted 2026-11-03), later: many downloads have a
+   size known ahead of time (meta's entries, assets, libraries, package and runtime
+   manifests). They should get a `Net::SizeValidator` and refuse anything larger.
