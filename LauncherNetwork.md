@@ -76,13 +76,25 @@ Decided 2026-11-02.
 
 - **Updates aren't cached.** They are downloaded, checked, applied, and then of no further
   use. The updater's downloads bypass every cache.
-- **Meta should be cached by hash** (noted 2026-11-02). Its files form a hash tree: the root
+- **Meta is checked by hash** (built 2026-11-03). Its files form a hash tree: the root
   index lists every package with a SHA-256, and each package index lists its versions with
-  one. Only the root needs to be fetched to see what changed; everything else can be looked
-  up by hash, with no request at all when it is already stored, and the same hash holds on
-  every copy. Today meta goes through the HTTP meta cache and ETags instead. Moving it to a
-  store keyed by hash (possibly a key-value store rather than many small files) is a task
-  of its own, after the sites exist. It may come with the new meta format
+  one. The files stay where they were (`meta/<uid>/...`); the hashes only decide what is
+  current:
+  - The root index is fetched with an ETag, at most once in 55 minutes: meta refreshes
+    hourly, so a long session stays current.
+  - Anything below it is fetched only when its local copy doesn't match the hash its parent
+    lists, and the download must match that hash. Its parent is brought up to date first.
+    A local copy that matches needs no request.
+  - A download that doesn't match its hash, or is missing, means the path from the root is
+    stale: the root is fetched again (unless it was fetched within the last minute) and the
+    path followed once more.
+  - When an update fails, the local copy is used as it is, with a warning: stale isn't
+    invalid. Only when there is nothing local does the load fail. After the root fails, it
+    isn't tried again for 5 minutes.
+
+  The decisions are one pure function with a table test (`launcher/meta/UpdateStep`).
+  Storing files by hash (possibly a key-value store rather than many small files) would
+  leave orphaned files to clean up as meta changes; it may come with the new meta format
   ([MetaFormat.md](MetaFormat.md)), which could also publish files by hash.
 - **The HTTP meta cache stays** for what it is mainly for: bigger downloads from external
   sources. Its entries are keyed by a base name and a path, not by host.
@@ -106,7 +118,8 @@ changes nothing for users until something uses it:
    `v1/`). `Net::Download` takes any URL on a site's base URL and falls back to the same
    path on the others (`Net::Mirrors`), so callers didn't change, and the current
    updater's absolute URLs on the files site fall back too. The news stays on the website.
-3. **Meta's cache by hash**, later and separately, probably with the new meta format
+3. **Meta's hash tree**: checking meta's files against the hashes in their indexes.
+   Built 2026-11-03, see Caching. Storing them by hash is left for the new meta format
    ([MetaFormat.md](MetaFormat.md)).
 4. **Size limits where the size is known** (noted 2026-11-03), later: many downloads have a
    size known ahead of time (meta's entries, assets, libraries, package and runtime
