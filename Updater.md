@@ -307,6 +307,14 @@ possible: keep old releases' files available (build trees, release directories, 
 tree), and keep files identifiable by content (hashes), so a diff from any published version
 to the next can be made and checked.
 
+Reproducible builds matter here more than diffs (noted 2026-11-04,
+[Launcher#5795](https://github.com/MultiMC/Launcher/issues/5795)). Releases are now always
+clean builds, and the builds aren't deterministic: timestamps, and on Windows leftover
+linker memory, end up in the binaries, libraries and jars. So files that didn't really
+change get a new hash in every build, and updates carry them anyway. With content-addressed
+files, a deterministic build is what keeps an update down to the files that actually
+changed.
+
 ### A UI for releases
 
 Moving tags (tagging a build Testing, promoting it to Stable) needs tooling with a UI, not
@@ -395,9 +403,14 @@ The work splits into parts that can mostly be built and introduced on their own 
    (the log, system information), so it lands without the toggle.
 8. **Launcher: the new client**, behind the toggle, needing 1, 6 and 7. Relative URLs, the
    keys document and pointers, the stored state with its floors, the tier choice and the
-   requirement checks. It reuses the existing apply step (`UpdateController`,
-   `OperationList`), so the part that swaps files on disk stays as it is, apart from links
-   (below). It is built on groundwork in the Launcher that lands first, each part on its
+   requirement checks. It has an apply step of its own (decided 2026-11-03, replacing reuse
+   of v1's `UpdateController` and `OperationList`): it takes the target state of a build (the
+   files and the symbolic links its manifest lists) and places it, with a backup and a
+   rollback. Links (macOS frameworks need them) are made with `QFile::link`; a change to a
+   link is applied, never refused. The current updater and its apply step stay exactly as
+   they are and freeze with the current layout; whatever the two share is copied rather
+   than changed, so the current updater needs no new testing. Users reach the new apply
+   step only through the new updater. It is built on groundwork in the Launcher that lands first, each part on its
    own, without the toggle, and changing nothing for users (decided 2026-11-02):
    - **The network layer** ([LauncherNetwork.md](LauncherNetwork.md), Groundwork):
      `Net::Download` gains a size limit, a way to bypass caches, a missing file told apart
@@ -406,11 +419,6 @@ The work splits into parts that can mostly be built and introduced on their own 
    - **Strict JSON** in the Launcher's JSON helpers (`Json.h`): an exact set of keys, no
      nulls, integers in a range. The formats are read with these, not with code of their
      own.
-   - **Symbolic links in the apply step.** The manifests list links (macOS frameworks need
-     them), and the apply step only knows replace and delete, so it gains an operation that
-     creates a link (`QFile::link`), with a backup and rollback like the others. A change to
-     a link is applied, never refused. The current layout never asks for it, so the current
-     updater is unaffected.
 
    A first attempt at the client (2026-11-02) worked against files2, but was set aside: it
    had its own downloading and JSON parsing beside the Launcher's, its mirror logic only for
@@ -427,7 +435,11 @@ Launcher work.
 
 ### In the Launcher
 
-- **The toggle is a CMake option**, off by default (`Launcher_NEW_UPDATER`), not a runtime
+- **Updater v1 and v2.** The current updater is v1, the new one v2, each in its own
+  directory and namespace (`launcher/updater/v1`, `UpdaterV1`; `launcher/updater/v2`,
+  `UpdaterV2`; named 2026-11-03). They share no code: what v2 needs from v1 is copied, so v1
+  stays exactly as it was until it is removed after the cutover.
+- **The toggle is a CMake option**, `Launcher_UPDATER_VERSION`, 1 by default, not a runtime
   setting. It ends up in BuildConfig as a value, like the URLs, and that value decides which
   updater the Launcher creates (changed 2026-11-02). All code compiles in every build, with
   no `#ifdef` for it, so production builds contain the new updater, but nothing reaches it,

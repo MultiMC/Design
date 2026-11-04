@@ -429,6 +429,10 @@ How the Launcher picks a mirror (its network layer does this for every site, see
   document is checked against its signature and the serial, and every file against its
   hash, so a mirror that lags behind a sync can only fail, not mix in anything that doesn't
   fit.
+- A document and its signature come from the same mirror (noted 2026-11-03): they are
+  written together, so a signature from a mirror that lags behind never meets a document
+  from one that doesn't. A document that doesn't verify, or that is older than what was
+  seen already (a lower serial), moves on to the next mirror like a failed request.
 - After the list, it tries the compiled-in hosts that aren't in it, in their compiled-in
   order.
 
