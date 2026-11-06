@@ -165,6 +165,12 @@ meet them, the Launcher stays on its current build and tells the user why (for e
 one machine may run several variants of a build, and a variant can supersede another, which
 moves Launchers over (see [UpdaterFormats.md](UpdaterFormats.md), Variants).
 
+Idea (2026-11-06), not decided: `supersedes` moves people without asking, and that may not be
+right for every move (a Windows machine can run both the Qt 5.6 and the Qt 5.15 build, and
+some people will want one or the other). Moving could instead be optional and visible: when a
+machine can run several variants of a build, the user chooses in the Launcher's UI. Until
+this is settled, no variant supersedes another.
+
 ### Relative URLs in the manifests
 
 The channel `url`s in `channels.json` and the source URLs in each version's file list are
