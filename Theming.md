@@ -25,8 +25,8 @@ around all of it. What is decided, what is proven, and what is still open.
 - **Proven in a proof of concept:** `ThemeTest/` (next to the Launcher checkout; built with
   `hopper/launcher/run-build.py win32 ThemeTest <output dir>`). Verified on Windows 11 on
   2026-11-07, see [ThemeTest](#themetest). Not tested on Windows 10 (no machine).
-- **Next:** decide macOS by trying both options; then port ThemeTest's parts into the
-  Launcher.
+- **Next:** following the system on Linux (the desktop portal); then port ThemeTest's parts
+  into the Launcher.
 
 ## The current theme system
 
@@ -48,23 +48,87 @@ dark theme can end up with dark icons.
 The default everywhere is Fusion with our palettes (Bright, Dark, System following the OS),
 the accent setting, and title bars following the theme. Exceptions:
 
-- **Windows:** no exception. The native windowsvista style is light-only in Qt 5 and ignores
-  most of the palette (buttons, checkboxes, progress bars and scroll bars come from Windows'
-  visual styles), so it can't do dark mode or a custom accent. It could stay as an opt-in
-  "Native" theme, with title bars left to Windows.
+- **Windows:** Fusion only, no Native option (decided 2026-11-07, after trying windowsvista
+  with Qt 5.6 and 5.15 in ThemeTest). windowsvista is light-only in Qt 5 and ignores most of
+  the palette (buttons, checkboxes, progress bars and scroll bars come from Windows' visual
+  styles): no dark mode, no accents, and its progress bars stay Windows' green next to
+  blue-accented controls. Windows has no single look of its own to match anyway: layers of
+  toolkits and their versions side by side.
+
+**Native on macOS and Linux** (decided 2026-11-07): the platform's own style, whatever Qt
+starts with, with what that style can take. Known styles:
+
+| Native style | Bright, Dark, Red | Accent | Custom accent | Default |
+|---|---|---|---|---|
+| Breeze, Kvantum | our palettes (palette-driven, like Fusion) | yes | yes | yes |
+| macintosh | Bright and Dark force the app's appearance | the system's, natively | no: AppKit draws checks and buttons with the system accent | no |
+| any other (a GNOME desktop's) | no: the platform's look as it is | no | no | no |
+
+What a style can't take is disabled, not hidden, and the choices are kept: switching back to
+Fusion brings them back. Handing the palette back to the platform differs by the Qt we run
+with: 5.15 gives the platform's back for a palette with no roles set (live, with its
+per-class palettes); older Qt copies the current palette instead (seen with 5.6 on Windows,
+before Native was dropped there: Dark's window colour and the accent stayed), so there the
+palette the platform gave at the start is set back. Checked at run time (`qVersion()`): Linux
+builds run on the system's Qt, which can be older than 5.15. An unknown style gets the
+platform's look as it is: we don't know what it does with a palette. ThemeTest:
+`nativeAbilities()` in `Themes.cpp`.
 - **Linux:** the desktop's own style only where it is known to be good and actually present:
   Breeze on KDE-like desktops (the Plasma platform theme is loaded and the style exists), and
   possibly Kvantum (whoever installed it chose a theme on purpose). Everything else gets
   Fusion: Qt's GTK integration varies too much between distributions.
-- **macOS: open, to be decided by trying both.**
-  - *Fusion*, like everywhere else. The title bar needs a small Objective-C++ shim: the
-    window's `NSAppearance` (aqua or dark aqua) from the palette's brightness, or a
-    transparent title bar over the window's background colour for the palette's colour.
-  - *The native macintosh style.* Qt 5.15 follows dark mode with it, and it looks like a Mac
-    app. Our Bright and Dark themes would then force the app's appearance
-    (`NSApp.appearance`) rather than set palettes; custom palettes on top of it look odd.
-  - ThemeTest has a style switch on macOS to compare the two on a real Mac
-    (`run-build.py osx64-5.15.2 ThemeTest <output dir>`).
+  - On those desktops Native is the default, and must work completely: with the System theme
+    the application palette is the platform theme's, all of it (the desktop's colour scheme,
+    accent and changes, live), so we set none of our own. Qt 5.15 gives it back when an
+    empty palette (no roles set) is set. Bright and Dark are our palettes on Breeze, which
+    uses the palette fully, like Fusion. A custom accent goes on top as the only roles set,
+    so the rest keeps following the desktop. In every colour group the way the desktop does
+    it to its own accent: KDE dims an inactive window's selection (`#3daee9` becomes
+    `#1b4155`, same hue, about 65% of the saturation and 38% of the lightness) and practically
+    removes a disabled one, by colour effects that aren't a plain mix. ThemeTest
+    (`followPlatform`) measures the platform's change in HSL saturation and lightness per role
+    and group and applies it to the custom accent, keeping its hue; `--dump-palette` prints
+    the platform's colours per group.
+  - Seen 2026-11-07 on a KDE fork: the Launcher's current System theme and ThemeTest's
+    Fusion only followed the portal's dark/light and accent, not the colour scheme itself
+    (Golden Honey Oak stayed our Bright). That's the gap Native closes.
+  - Whitelisted styles, by the name of the style Qt starts with: `breeze`, `kvantum` (and
+    `macintosh`, where Native is an option, not the default).
+  - Following the system: the XDG desktop portal (`org.freedesktop.portal.Settings`,
+    namespace `org.freedesktop.appearance`): `color-scheme` (0 no preference, 1 dark,
+    2 light) and `accent-color` (r, g, b in 0..1), with a `SettingChanged` signal. One
+    interface for KDE, GNOME and their forks, whichever portal backend the desktop runs.
+    Verified 2026-11-07 on a KDE fork (X11), which the Launcher's current System theme
+    doesn't follow: dark and `#3daee9` read fine. ThemeTest's `SystemTheme_linux.cpp`.
+  - It needs QtDBus: one more Qt library on Linux (part of qtbase everywhere; Debian's
+    `libqt5gui5` already depends on `libqt5dbus5`), so `libQt5DBus.so.5` joins the lin32 and
+    lin64 gate expectations when the Launcher gets it. Calls time out after 2 s, so a
+    missing or slow portal can't hang the start.
+  - Without a portal, there's nothing to follow: the System theme isn't offered.
+- **macOS: Fusion by default, the native style as an option** (decided 2026-11-07, after
+  trying both in ThemeTest on a Mac: `run-build.py osx64-5.15.2 ThemeTest <output dir>`).
+  - The native macintosh style follows dark mode in Qt 5.15 and looks like a Mac app, but
+    it brings its own layout metrics (bigger margins and spacing for focus rings, fixed
+    button and combo box heights) that our layouts weren't made for: loose in places,
+    cramped or clipped in others. Keeping it the default would mean going through every
+    dialog on a Mac.
+  - Fusion keeps the layouts as designed and tested everywhere. The System theme and the
+    system accent make it follow macOS's colours; the title bar follows through a small
+    Objective-C++ shim (the window's `NSAppearance`, aqua or dark aqua, from the palette's
+    brightness, or a transparent title bar over the window's background colour).
+  - The native style stays as a "Native" theme: Bright and Dark there force the app's
+    appearance (`NSApp.appearance`), and Qt's native palette follows it.
+  - Qt's Cocoa theme keeps the native controls' right colours in palettes per widget class
+    (buttons, item views, labels...). Setting an application palette with any roles clears
+    them for good (Qt 5.15 `handlePaletteChanged`); only one with no roles set brings them
+    back. A custom accent cleared them (black button text, the list ignoring the accent), so
+    ThemeTest takes them after handing back to the platform and puts them back with the
+    accent in them. Whatever we do, the native style draws checkboxes, radio buttons and
+    default buttons with AppKit's system accent: a custom accent would reach selections and
+    links only. So with the native style on macOS the custom accent isn't offered (decided
+    2026-11-07): the choice is kept, the system's accent is used, and Fusion brings the
+    custom one back.
+  - Default on a fresh install: the System theme with the system accent.
   - Toolchain note: `@available(macOS ...)` doesn't link with our osxcross toolchain (no
     compiler-rt, so no `__isPlatformVersionAtLeast`). Version checks go through
     `NSProcessInfo isOperatingSystemAtLeastVersion:`, see ThemeTest's `MacOS.h`.
@@ -103,6 +167,10 @@ XP):
   - An event filter on the application applies it to every top-level window when it gets its
     native window, is shown, or gets a new palette: our windows, `QMessageBox`, Qt's own
     `QFileDialog`. Native file dialogs aren't Qt windows and keep the system's look.
+  - Every theme switch also refreshes all title bars itself: Qt sends PaletteChange only
+    when a widget's palette really changes, and Dark to System in a dark Windows (or Bright
+    to System in a light one) gives the same palette while the title bars must go from the
+    palette's colours to the system's. Without it they kept Dark's caption colour.
   - The title bar changes a moment before the window content (DWM redraws it at once, Qt on
     its next paint). Explorer does the same.
 - **System theme (Windows).** `AppsUseLightTheme` under
@@ -110,13 +178,36 @@ XP):
   the `WM_SETTINGCHANGE "ImmersiveColorSet"` broadcast (a native event filter). With the
   System theme, title bars only switch dark or light and keep Windows' colours, so Windows
   draws the accent on them when the user turned that on.
+- **The System theme's colours.** Following only dark or light isn't enough: with our Dark
+  palette (window `#31363b`) under Windows' own dark title bar (`#202020`) it didn't look
+  like the system. So System uses the system's own colours where we know them
+  (`SystemTheme::palette()`), and our Bright or Dark elsewhere:
+  - Windows: Qt 5.6 only has the classic system colours, light even in dark mode, so
+    Windows 11's own values: dark window `#202020`, fields `#2b2b2b`, buttons `#2d2d2d`,
+    white text; light window `#f3f3f3`, white fields, text `#1b1b1b`. They also match the
+    default title bars, which System leaves to Windows.
+  - Our Bright is those light colours too, everywhere: neutral and clean. Fusion's standard
+    palette, which it used before, has a warm beige window (239,235,231) that looked
+    yellowish next to Windows.
+  - macOS: AppKit's semantic colours (`windowBackgroundColor`, `controlBackgroundColor`,
+    `textColor`, `alternatingContentBackgroundColors`) resolved in the current appearance.
+  - Linux (Fusion): the portal has no colours, so our Bright or Dark; KDE-like desktops get
+    their real colours through Native.
 - **Accent, for every theme:** the theme's own, the system's (followed live), or a custom one
-  from Qt's `QColorDialog`.
+  from Qt's `QColorDialog`. The System theme's own accent is the system's.
   - Windows' accent and its shades: `AccentPalette` (8 × RGBA, Light3 to Dark3) under
     `HKCU\...\Explorer\Accent`; without it, DWM's `AccentColor` (0xAABBGGRR) and shades of
     our own.
-  - Applied like Windows 11 does: Highlight = Light2 on dark backgrounds, Dark1 on bright
-    ones; Link = Light3 or Dark2; HighlightedText black or white by luminance.
+  - Applied as the desktops do it: Highlight (selections, checks, progress) is the accent
+    itself, HighlightedText black or white by luminance. Links are text on Base, so they
+    get the accent's hue made readable there (`Colors::readable`, 4.5:1). An earlier
+    version used Windows 11's shades (Light2 on dark, Dark1 on bright); it washed accents out
+    on dark themes (red became pale pink) and didn't match KDE or macOS, which fill with the
+    accent itself.
+- **Checking a theme.** An Enabled/Disabled gallery shows every kind of control twice.
+  `ThemeTest --screenshots <dir>` saves the window in every theme as PNGs and quits; with
+  `QT_QPA_PLATFORM=offscreen` it needs no desktop, so theme changes can be looked at (and
+  compared) without clicking through them.
 - **Platform split.** `TitleBar` and `SystemTheme` are interfaces with one file per platform
   (`_win.cpp`, `_other.cpp` stubs), no `#ifdef`s.
 
@@ -136,6 +227,34 @@ Open issues the overhaul fixes or touches, by cause:
   [#2476](https://github.com/MultiMC/Launcher/issues/2476) (log search highlight). Hard-coded
   colours that ignore the palette: the black pen in `InstanceView.cpp`, the Legacy FTB and
   ATLauncher list colours.
+- **Our palettes leak the desktop's colours.** The Bright and Dark palettes
+  (`BrightTheme.cpp`, `DarkTheme.cpp`) set only some roles; Qt fills the rest (Light,
+  Midlight, Mid, Dark, Shadow, PlaceholderText) from the platform palette, which is the
+  desktop's colour scheme on KDE. Palettes must set every role: `QPalette(button, window)`
+  derives the shading ones. And a bright palette must not come from the active style's
+  `standardPalette()`: Breeze's is the KDE colour scheme (seen in ThemeTest on 2026-11-07,
+  Bright turned into Golden Honey Oak).
+- **Disabled controls look enabled in dark themes.** `QPalette::setColor` without a group
+  sets the disabled colour too, the same as the active one. The Launcher's
+  `ITheme::fadeInactive` then mixes roles 50% towards one fade colour, which for Dark is the
+  window colour: a disabled field's fill ends up nearly the same as an enabled one (35,38,41
+  vs 42,46,50), and Fusion draws indicator outlines from Window, which doesn't change. So a
+  disabled unchecked radio button looks enabled. ThemeTest's rule (`deriveDisabled`), the
+  same for every palette, after the accent:
+  - foregrounds and accent fills (text, links, selected text, Highlight) fade to their
+    background, not to grey: they take its hue and saturation, and only their lightness sits
+    partway to the background's (halfway for text, 60% for Highlight). A red theme fades to
+    red, a dark one to its window's grey. A plain mix makes in-between hues (a blue accent on
+    the red theme turned purple, with blue left in disabled controls); fading to grey
+    ignores the theme;
+  - Base, AlternateBase and Button 60–70% to Window: the theme's own colours, flat.
+  With a custom accent on a desktop's palette (Native), a disabled accent is the desktop's
+  disabled window hue at the lightness of the desktop's own disabled colour for that role.
+  On a strongly saturated theme (Red) the disabled colours come out vivid; the saturation
+  taken from the background may need tuning. Checked with ThemeTest's Enabled/Disabled
+  gallery.
+  What the palette can't fix: QLabel draws rich-text links in the active Link colour when
+  disabled, and Fusion's disabled slider groove keeps a light accent fill.
 - **Fusion.** [#1791](https://github.com/MultiMC/Launcher/issues/1791): message box icons are
   Qt's generic ones; a small `QProxyStyle` returning the platform's standard icons would fix
   it.
@@ -157,8 +276,8 @@ Open issues the overhaul fixes or touches, by cause:
 
 | | Windows (Qt 5.6.3, XP) | macOS (Qt 5.15.2) | Linux (the distribution's Qt 5) |
 |---|---|---|---|
-| Following dark/light | no API: our registry reader | the platform theme follows the appearance; we read it for Fusion | the platform theme if any; the portal's `color-scheme` over D-Bus |
-| Accent | registry | `NSColor.controlAccentColor` (10.14+) | portal `accent-color`, newer desktops |
+| Following dark/light | no API: our registry reader | `AppleInterfaceStyle` and a distributed notification (proven) | the desktop portal's `color-scheme` over QtDBus (proven) |
+| Accent | registry (proven) | `NSColor.controlAccentColor`, 10.14+ (proven) | the portal's `accent-color` (proven) |
 | Title bars | DWM (proven) | `NSWindow.appearance`, or a transparent title bar | X11: the window manager's (Mutter respects `_GTK_THEME_VARIANT=dark`, KDE has a per-window colour scheme property); Wayland: Qt 5's own decorations ignore the palette |
 | Known problems | Fusion's cache bug; integer-only high-DPI scaling; per-monitor DPI changes | | depends on the version |
 
@@ -198,10 +317,23 @@ Roughly in this order, each a release of its own:
    becomes "Native" where it is kept.
 4. The accent setting (theme's own, system, custom) in the settings.
 5. Icon themes following the palette's brightness (a light and a dark variant per set).
-6. The Linux whitelist and the macOS decision.
+6. The Linux whitelist; Fusion as the macOS default.
 7. Custom themes as palettes on the default style.
 
 Parts marked in ThemeTest's comments go away with a newer Qt.
+
+## Findings to fix
+
+Found while testing ThemeTest, recorded first, fixed later.
+
+- **macOS, Fusion, System theme:** a black bar between the title bar and the window content
+  (2026-11-07). Gone with any other theme. Guess, not verified: System leaves the title bar
+  to macOS (`Style::Brightness`, only the window's appearance set), and macOS 11+ draws a
+  separator line under a normal title bar; the other themes use a transparent title bar,
+  which has none (`NSWindow.titlebarSeparatorStyle`, 11+, could turn it off). May be
+  expected: plain macOS windows without a toolbar get that hairline, other Qt apps too;
+  Apple's own apps mostly blend the title bar into the content instead. Left as it is
+  (decided 2026-11-07): revisit if Mac users complain.
 
 ## Ideas
 
@@ -211,6 +343,4 @@ Parts marked in ThemeTest's comments go away with a newer Qt.
 
 ## Open questions
 
-- macOS: Fusion or the native style (testing both).
 - Which Linux styles go on the whitelist besides Breeze.
-- Keep a "Native" theme on Windows at all?
