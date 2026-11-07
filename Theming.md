@@ -453,9 +453,36 @@ The format we and Prism already read, so existing themes keep working:
 - **User:** every folder in `themes/` with a valid `theme.json`, listed after the built-ins.
   An untouched default left by older versions (`themes/custom`, see `CustomTheme`) isn't
   listed. Broken ones are left out and logged, and the Appearance page says how many.
-- The list is read again when the Appearance page opens and after an import: no restart.
+- The lists are models watching their folders (below): themes added, changed or removed
+  show up at once, no restart.
 - Ids are folder names; the setting stores the id. A theme that is gone falls back to the
   default, as an unknown theme does now.
+
+### The lists and the selectors
+
+Any number of themes doesn't fit a row of card widgets. Like the instance icons (`IconList`,
+`WorldList`, `ModFolderModel`):
+
+- **`ThemeList` and `IconThemeList`:** `QAbstractListModel`s, the built-in themes first, then
+  one row per folder. A `QFileSystemWatcher` on `themes/` (`iconthemes/`) rescans when
+  folders come and go; one on each theme's `theme.json` and stylesheet reloads that theme
+  when it changes, and the current theme is applied again: editing a stylesheet shows at
+  once, which theme authors want. Rows carry the id, the name, whether it is built-in, and
+  for broken themes why (shown, not hidden, so their authors see what's wrong).
+- **The views:** plain `QListView`s, a row per theme on the list's own background
+  (`DetailRowDelegate`): the theme preview (`ThemePreview`, from
+  `ThemeManager::previewPalette`, so the accent and style reach every row) or six of the icon
+  set's icons, the name, and a line of details: who made it and its license, from the REUSE
+  file next to `theme.json` (`theme.json.license`, as the community themes have it;
+  `ReuseInfo`), an icon theme's `Comment=`, "Built in", or why it can't be used. Cards in a
+  grid came first: names didn't fit, and there was no room for details.
+- **The Appearance page is tabs** (decided 2026-11-07, after the cards didn't fit at 1080p and
+  150 %): Theme (the style and the accent as two rows on top, the list below), Icons, and
+  Console (the console font, moved from the Launcher page, and a preview with a line per log
+  level in the theme's colours). The setup wizard's step has the Theme and Icons tabs. The
+  lists scroll, so the page fits small screens.
+- Selecting one applies it at once, as now. User themes have a context menu (Customize…,
+  Export, Open folder, Delete); a zip dropped on the view is imported.
 
 ### Getting themes in and out
 
@@ -480,19 +507,27 @@ The format we and Prism already read, so existing themes keep working:
   "theme override" and "revert to built-in" aren't needed then).
 - **The editor:** a swatch per role (picked with `AccentColorDialog`), the log colours, and
   the theme preview, live; Save writes `theme.json`. The stylesheet isn't edited in the
-  launcher: "Open folder" for that, and a note that it reloads when the theme is applied
-  again.
+  launcher: "Open folder" for that; the watcher applies changes as they are saved.
 
 ### Phases
 
-1. Every folder in `themes/` and `iconthemes/`; `qssFilePath`, `logColors`, and the better
-   base for missing colours; cards for all of them on the Appearance page (scrolling when
-   there are many). Custom icon themes stop being limited to `iconthemes/custom` (#812).
+1. Every folder in `themes/` and `iconthemes/`, as watched models in list views; `qssFilePath`,
+   `logColors`, and the better base for missing colours. Custom icon themes stop being
+   limited to `iconthemes/custom` (#812). **Done** (2026-11-07): `ThemeList` and
+   `IconThemeList` in `launcher/ui/themes/`, `CardListView` (a list view and a card delegate)
+   in place of the card widgets. Changes to the current theme's files show within a moment
+   (200 ms after the last change: editors write in several steps). Icon themes come and go
+   live, but changes inside one already loaded need a restart: the icon loader keeps each
+   theme's files once read. Theme folders named like a built-in theme (`system`, `bright`,
+   `dark`) are skipped.
 2. Import and export, Open folder, Delete.
 3. Customize… and the editor.
 
-Later, if there's demand: a list of community themes to browse and install from the launcher
-(#3873), like meta, built from a repository of themes.
+Follow-up (wanted, 2026-11-07): themes hosted for the launcher to install, from the website or
+the repository (#3873). The source is our fork of Prism's community themes,
+[MultiMC/Themes](https://github.com/MultiMC/Themes) (Ore UI's radio buttons fixed for Qt 5
+there: their SVGs used masks, which Qt 5 can't draw). Likely like meta: an index built from the
+repository, each theme a zip, browsed and installed from the Appearance page.
 
 ## Findings to fix
 
