@@ -1,0 +1,2441 @@
+# Old idea list (2015 and later)
+
+A copy of the public Workflowy list ideas were moved to from GitHub issues around 2015
+(<https://workflowy.com/s/2EyDMcp7CU>; closed issues say "Moved to workflowy"). Taken
+2026-11-07, so it survives the issue trackers' reorganizations. Raw ideas, not decisions: some
+are done, many outdated. `[x]` marks items done in the list.
+
+Left out: the monthly patron lists (names of people) and a third party's email address.
+
+```
+# MultiMC
+- https://github.com/MultiMC/MultiMC5 
+- Inbox
+  - Users fail to install the right version of java #usability #terrible
+    - https://github.com/MultiMC/MultiMC5/issues/608
+    - Redistribute java 8u25
+      - http://www.oracle.com/technetwork/java/javase/terms/license/index.html
+    - Use the Mojang java when it's on the system?
+      - https://github.com/MultiMC/MultiMC5/issues/801
+    - Or use only Mojang java and not redistribute
+    - Can be a version list - so you could choose any version.
+    - On windows, remove the 'windows 10 capability' from the java exe manifest to fix intel driver problems
+  - Unify all the Java settings UI #refactor 
+    - Move pre/post/wrapper commands to their own page(s)
+    - Unify Java settings around the new JavaWizardPage design
+  - Unify all the Java probing #refactor
+    - We probe for java in N different incompatible ways
+    - It is BAD, stop doing it.
+  - Make it clear when instances are broken or incomplete #bug #usability
+    - https://github.com/MultiMC/MultiMC5/issues/2087
+    - Remove dialog box that pops up when changing Minecraft version, while the instance is 'custom'
+    - Add 'download all' button to version page
+    - Show version conflicts in the version page
+      - Mark components with conflicts as errored
+    - Fail early
+      - Detect missing files during offline launch
+      - Detect missing files when looking at the version page, mark components as incomplete
+      - Failed downloads should make components as errored
+    - Show completeness state of instances somehow?
+      - This would need to be some sort of throttled, deferred thing, because resolving every single file of every single instance is not a free operation.
+  - Add trash folder #idea
+    - https://github.com/MultiMC/MultiMC5/issues/814
+    - https://gyazo.com/2fb2707c147cc93e5428c64d79ba44db
+    - Move thing to be deleted to the trash folder
+    - Nuke it in a background thread
+    - _MMC_TRASH
+      - Make sure this is a reserved name and it cannot be used for instance IDs
+      - Check _MMC_TEMP -- it should also be a reserved name
+  - Investigate java jars not starting with `;-;` in the path. #bug
+    - Try to fix it.
+    - If this is not fixable, provide sensible error message to the user.
+  - Integrate FreeBSD patches #idea
+    - https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=224823
+    - credit @tsundoku
+  - Investigate https://github.com/deltamc-project for inspiration for mod installs?
+    - See:
+      - https://www.reddit.com/r/feedthebeast/comments/7xlr77/realistically_speaking_how_feasible_would_it_be/
+  - Investigate possible offline mode issues #bug #support #needs-repro 
+    - https://github.com/MultiMC/MultiMC5/issues/2138
+    - https://www.reddit.com/r/MultiMC/comments/7wrf0x/multimc_wont_let_me_launch_my_game_offline/
+    - Test actually offine
+  - Look at forge installer, make the library patcher take absolute jar paths #idea
+    - https://github.com/MinecraftForge/Installer/commit/8175069d02eae6a52b921969f6c673dab6dc3774
+    - TODO
+      - At the very least needs a prefix to operate in, not hardcoded ~/.minecraft
+      - Hard to control!
+        - Ideally have it operate on absolute input/output paths, there's no reason to limit what it can do
+      - srg and json inside?
+        - easy args
+          - inputPath, outputPath, side
+      - srg outside
+        - full args
+          - (inputPath, srg,)+ outputPath
+      - How is append supposed to work?
+        - Investigate further
+      - See what we will have to repackage/rehost
+      - Test it by transforming a Minecraft jar and launching it
+  - Make it easier to use themes #idea
+    - Explain it somewhere
+  - Finish the GPU and GPU driver reporting functionality on WIndows and macOS #idea
+  - Make the 'change version' dialog actually apply the expected filters to the version list it shows #idea
+    - Currently there is hardcoded nonsense for forge and liteloader
+    - This should use the metadata, not some magical hardcoded nonsense
+    - As the list doesn't have to be loaded when clicking the button, the dialog itself needs to be able to discover the filter it needs to apply once the list loads.
+    - Or just hardcode filtering by minecraft version and YOLO it. Then defer the proper implementation to a separate task.
+  - Add retry scheme to pack import operations to avoid intermittent problems #idea
+    - Example problem:
+      - "could not rename overrides folder: overrides"
+    - This is caused by third party software messing with things it shouldn't mess with.
+    - Retry with backoff scheme in case it fails?
+  - Version ordering needs to be enforced by default #bug #usability
+    - Forge doesn't work in front of Minecraft... just doesn't. Needs to be after.
+    - graph algorithms to the rescue!
+      - use topological sorting
+  - Skin uploads are possibly broken? #bug #needs-repro
+    - https://github.com/MultiMC/MultiMC5/issues/2134
+    - Needs repro, maybe fix.
+    - [x] Apparently, this stuff has changed at some point, and we are not sending the model part correctly.
+      - See: http://wiki.vg/Mojang_API#Upload_Skin
+      - It should be empty or 'slim', not 'steve' or 'alex'
+  - Possible major issue with installation on macOS High Sierra #bug #support
+    - https://github.com/MultiMC/MultiMC5/issues/2132
+    - Does not properly change the file flags on addition to /Applications
+  - Investigate this pack updater thing, see if it can be reused #idea
+    - https://github.com/132ikl/MultiMCImportUpdater
+    - More like user data transfer from one imported version to another?
+  - Update `BUILD.md` to reflect new state of things, document install layouts #infrastructure 
+  - Start documenting the formats #documentation
+    - Details
+      - All the fields and structure
+    - Intent & design
+      - https://www.reddit.com/r/feedthebeast/comments/7ncm4q/multimc_060_released/ds3o423/?context=5
+  - Go through the wiki, remove or update everything that is outdated #documentation
+  - Make sure fuzzy (not conforming to strict definition of URL as per the RFCs) relative redirects work #bug
+    - Not network relative (starting with //), just relative (starting with /)
+    - https://gist.github.com/peterix/ec1bf9bdae13217a73ad1e56cbf49065
+    - Impl. in Download.cpp
+  - Publish and document testing instances and packs #infrastructure #testing
+    - Instances
+      - The old instance specimens
+      - Add a new one for the new format
+    - Packs
+      - A flame pack with spaces
+      - A flame pack with that one weird unicode mod
+  - Move meta builds to separate builder(s) #infrastructure #meta
+    - Make sure it has the github keys imported
+      - RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - Separate as much as possible
+      - -> develop gets one builder
+      - -> stable gets one builder
+      - -> both should update automatically
+    - Use deploy keys
+  - Wording of update download progress dialog is wrong #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1701
+    - If only 1 file needs to be updated, it says "Downloading 1 update files"
+  - Switch from s3cmd to awscli for s3 uploads #infrastructure
+    - s3cmd is breaking MIME types of uploaded files
+    - This is causing havoc for the websites and strict MIME type checking policy of modern browsers
+    - Fix existing buckets first:
+      - https://github.com/dailymuse/s3-content-type-fixer
+  - Weird OSX issue with java detection #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1957
+    - Maybe it is GUI related?
+    - https://www.youtube.com/watch?v=u0bhtLLjH9o
+    - http://i.imgur.com/VP515oJ.png
+    - http://i.imgur.com/eg6ygTA.png
+    - https://github.com/MultiMC/MultiMC5/files/1237350/MultiMC-0.log.zip
+  - Investigate issues with spaces in path #bug
+    - https://www.reddit.com/r/MultiMC/comments/75hw55/here/
+    - Seems like Java is breaking because ... what?
+  - There is something really weird going on with java detection on windows #bug
+    - Cannot detect 32bit java installed on 64bit system???
+      - Registry issues
+      - ???
+    - People run into the selected Java not being accepted by the setup wizard as valid
+      - Again, 32bit Java..
+        - But how did it get detected?
+  - Fix rare crashes when closing the instance window #bug 
+    - valgrind
+      - Invalid write of size 8...
+    - destruction of:
+      - WorldListPage
+      - NotesPage
+      - VersionPage
+      - ModFolderPage
+      - ==10813== Invalid write of size 8
+      - ==10813==    at 0x55FC3CC: QWidget::~QWidget() (in /usr/lib/libQt5Widgets.so.5.10.0)
+      - ==10813==    by 0x57587D9: QPushButton::~QPushButton() (in /usr/lib/libQt5Widgets.so.5.10.0)
+      - ==10813==    by 0x7CEA54C: QObjectPrivate::deleteChildren() (in /usr/lib/libQt5Core.so.5.10.0)
+      - ==10813==    by 0x55FC584: QWidget::~QWidget() (in /usr/lib/libQt5Widgets.so.5.10.0)
+      - ==10813==    by 0x36195F: PageContainer::~PageContainer() (PageContainer.h:40)
+  - It crashes when it runs out of free space #bug
+    - https://cdn.discordapp.com/attachments/134843027553255425/288594555874312192/explorer_2017-03-07_03-50-53.png
+  - Some dialog buttons are not translated #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1834
+    - Likely missing core Qt translations. Either:
+      - Package them
+      - Customize EVERYTHING!
+  - Version file assets mess #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1828
+    - Asset and jar locations can be overruled by various broken old version files or even be completely missing
+    - Forge and other custom patches
+      - contains `assets`, overriding Minecraft assets. MESSY!
+    - Tracked FTB instances
+      - use broken old `1.7.10.json` which doesn't contain any of the new format Mojang download structures
+        - Possibly others... who knows.
+      - Report this as a bug on FTB launcher github
+  - Instance groups do not reload from file #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1824
+    - This can happen when:
+      - the file is watched (respond to external file change)
+      - the refresh button is used
+  - Possible huge slowdowns / lockups when opening 'edit instance' for certain instances #bug
+    - https://u.nya.is/biwbdl.zip
+    - Log reload is SLOW #bug 
+      - https://www.youtube.com/watch?v=DOh_Rxg6Dd0&feature=youtu.be
+      - Something must be done about this
+    - Mod scanning needs to use a cache
+    - Test on Windows?
+  - Investigate Edit instance crash #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1800
+    - Instanace had a log attached
+  - MultiMC freezes when opened from NFS on multiple machines #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1792
+    - Maybe put a lock file into the data folder?
+  - Fix QMessageBox icons, make them use themed icons #bug
+    - https://github.com/MultiMC/MultiMC5/issues/1791
+  - Distributing MultiMC with many libraries on linux causes compatibility issues #bug #terrible #deploy
+    - https://github.com/MultiMC/MultiMC5/issues/1379
+    - We can go back to Qt 5.2.1
+    - Distros where version >= this version is available:
+      - do not need some workarounds
+      - do not need the normally packaged libraries
+      - Therefore:
+        - IFDEF workarounds out?
+        - do separate 'minimal' and 'generic' builds
+        - Consider not doing 32bit again ~_~
+    - TODO: write 'library version sufficiency' script
+      - IF the packaged version > system version
+        - use packaged
+      - ELSE
+        - use system
+      - ldd -v, readelf, etc.
+        - readelf requires binutils - all our packages will need binutils
+    - Depends
+      - Qt 5.2.1 or newer
+      - libstdc++.so.6
+        - GLIBCXX_3.4.14
+        - from GCC 5.1.0
+      - glibc
+        - GLIBC_2.14 without included Qt
+        - GLIBC_2.15 with included Qt
+      - libz.so.1
+      - libpng12.so.0
+        - only with included Qt
+      - libpcre.so.3 -- ???
+        - Qt dep
+  - We need translations available ahead of the release. #bug
+  - Add support for WarmRoast profiler #idea 
+    - https://github.com/sk89q/WarmRoast
+    - A more informed CPU sampler that can do Minecraft mappings
+    - Integration:
+      - Start the launhcer part, take its PID
+      - Start WarmRoast, give it the PID
+      - Proceed with launch
+  - Sorting of instance groups? #idea
+    - Manual?
+    - Follow the sort order?
+    - Maybe?
+  - Unify 'open folder' buttons in the instance window #idea
+    - The open folder button is always in the same place
+    - default action is context sensitive
+      - on loader mods page, it opens the mods folder
+      - on pages with multiple associated folders, always activate drop-down
+    - drop-down allows opening any and all folders that make sense.
+      - Highlight folders relevant to the current page
+      - Stylized
+        - No tree structure painting
+        - First level is headings - opens the main locations
+        - Second level is folders with nice icons - opens the minor folders
+      - Example:
+        - Instance
+          - patches
+          - libraries
+          - jarmods
+        - minecraft
+          - mods
+          - coremods
+          - saves
+          - configs
+          - ...
+  - Allow renaming custom icons in the icons dialog #idea
+    - https://github.com/MultiMC/MultiMC5/issues/2101
+    - What to do when they are already in use?
+  - Make optifine work without all this messing around?
+    - Needs management of mods
+      - Auto-Install
+      - Auto-Uninstall
+    - Needs unavailable 'local' files to be provideable by user 
+      - Identified by hash
+      - When files are missing on launch, pop up a dialog that accepts file and URL drops
+        - Download or load, hash, complete the instance by inserting the resources
+  - Make it more obvious when 32bit java is used needlessly and warn people effectively #idea 
+    - https://mom-get-the.camera/nHgL8g.jpeg
+    - Just tell them it's wrong somehow?
+    - Do not show it unless a checkbox is checked?
+      - Maybe also filter out other undesirable versions by default (7, 9)
+  - Expand upon Task warnings logging added for Flame packs #idea #logging
+    - Generic logging
+    - Hierarchical -- preserve the task hierarchy and show it
+  - Only show the update action when there is an update #idea
+    - Always check for update.
+    - Make the setting that governs it only influence if there is a popup on start.
+  - Expand upon the split of User and Pack instance configuration #idea
+    - User:
+      - Java overrides
+      - Notes
+      - Window settings
+      - Launch method override
+    - Instance attributes for packs
+      - https://github.com/MultiMC/MultiMC5/issues/1018
+      - Name of pack
+      - Version of pack
+      - Description of pack
+      - Author information
+      - Components
+        - replaces order.json
+        - Properties
+          - name
+          - version
+          - installed as
+            - user requirement
+            - dependency
+          - version policy?
+            - freeze
+            - flexible
+            - autoupdate
+          - enabled/disabled
+          - optional
+      - Required/recommended java settings 
+        - Version
+        - Heap size minimum/optimum
+        - Maybe java settings should be autoconfigured instead - see java optimization #java_opt
+      - Changelog
+        - https://github.com/MultiMC/MultiMC5/issues/423
+      - Simple:
+        - we already have the URL the user used for creating the pack
+          - use it to check for trivial updates?
+      - Instance has pack info?:
+        - ... think about localization/translation
+        - Links:
+          - Info URL
+          - Update URL - used for update notifications
+          - etc.
+  - Transition MultiMC to a continuous stream of builds #idea
+    - Like develop
+    - Stable builds are promoted from the stream
+    - No more manually maintained changelogs.
+      - This is a terrible chore and needs to stop.
+      - The git commit messages should be used instead.
+        - That means better commit message quality.
+    - Use the new metadata format
+    - Build numbers should match between platforms!
+  - Add a way to specify default icon for new instances #idea
+    - https://github.com/MultiMC/MultiMC5/issues/2039
+    - Add a button thing to icon selector dialog
+    - Maybe draw checkmark overlay over the default one?
+  - Add a way to generate and upload the dxdiag output on Windows #idea
+    - Instructing people to do this is getting old
+    - https://social.msdn.microsoft.com/Forums/vstudio/en-US/019d7c3f-563f-4d90-a480-cc86538dd62d/automating-dxdiag-output?forum=vcgeneral
+    - https://stackoverflow.com/questions/28189656/getting-output-from-dxdiag-in-c-sharp
+  - Make ancient versions work, and make them available in MultiMC #idea
+    - Make instance containment work
+      - It is possible to set the home folder to the instance root and work around things using ~/.minecraft directly #idea
+        - SET APPDDATA=%~dp0.sandbox
+        - https://stackoverflow.com/questions/5034076/what-does-dp0-mean-and-how-does-it-work
+      - https://cdn.discordapp.com/attachments/134843027553255425/360197394609995777/image.png
+      - https://media.discordapp.net/attachments/288340027883257857/360061456147939328/unknown.png
+      - On macOS:
+        - Use `.minecraft`
+        - Set `user.home` to the instance root
+        - On launch create symlink:
+          - From `$Instance/Library/Application Support/minecraft`
+          - To `$Instance/.minecraft`
+        - On exit/crash:
+          - delete the symlink
+      - On Windows:
+        - Use `.minecraft`
+        - Set 'APPDATA' env var to instance root
+      - On linux:
+        - Use `.minecraft`
+        - Set `user.home` to instance root
+    - Make saves and resources work
+      - Motivation:
+        - https://youtu.be/ehWOlZYUpso
+      - Add haspaid = true to legacy applet launch #idea 
+        - Apparently some ancient versions need that to enable saves
+      - Intercept networking using a proxy
+        - -Dhttp.proxyHost=classic.retrocraft.net -Dhttp.proxyPort=80
+        - https://github.com/ariya/X2/blob/master/network/webproxy/webproxy.cpp#L31
+        - The proxy should catch all traffic meant for minecraft.net
+          - Host the resources
+          - Run the save service
+          - ...
+      - Save format
+        - 2byte = Length of Username
+        - string = Username
+        - 2byte = Length of token(?)
+        - string = Token
+        - 2byte = Length of save name
+        - string = Level name
+        - 1byte = Save slot (zero-index)
+        - 4byte = Length of array (GZIP copy of level data)
+        - gzip byte array = Level
+        - That is the save data payload
+        - string = ok
+        - GZIP {
+          - Int value = 656127880 ?
+          - Byte value > 2
+          - Byte value <= 1
+          - UTF String = level name
+          - UTF String = creator name
+          - long = creationTime
+          - short (width)
+          - short (depth)
+          - short (height)
+          - byte array (length of shortshortshort)
+        - }
+    - Weird patchers/things:
+      - https://mega.nz/#F!SRpVhQ7T!SqbgC2KmjCgqzY417J_6kg
+    - Real indev version:
+      - http://www.mediafire.com/file/2tme52gpe5f9j87/indev-02-12-10.jar
+      - There might be a bug with audio/resources:
+        - This seems to disappear when you turn off music
+        - https://bugs.mojang.com/browse/MCL-1448?page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel&showAll=true
+      - There's no sound or music
+        - We need to get the original resources and put them where they belong
+        - https://www.youtube.com/watch?v=uL3Gs0PuiNQ
+        - Substitute constant pool entries while loading classes?
+      - Setting up data path does not work?
+        - It seems to be looking at ~/.minecraft despite all the effort applied in legacy...
+        - Investigate
+    - b1.6 test build 3
+      - json
+        | {
+        |     "+traits": [
+        |         "legacyLaunch",
+        |         "texturepacks"
+        |     ],
+        |     "assetIndex": {
+        |         "id": "legacy",
+        |         "sha1": "c0fd82e8ce9fbc93119e40d96d5a4e62cfa3f729",
+        |         "size": 134284,
+        |         "totalSize": 111220701,
+        |         "url": "https://launchermeta.mojang.com/mc/assets/legacy/c0fd82e8ce9fbc93119e40d96d5a4e62cfa3f729/legacy.json"
+        |     },
+        |     "mainJar": {
+        |         "downloads": {
+        |             "artifact": {
+        |                 "sha1": "3eddb7fd2e960b19e70a53358d513d4d1dfc43bf",
+        |                 "size": 1421293,
+        |                 "url": "https://files.multimc.org/mc-versions/b1.6-tb3/client.jar"
+        |             }
+        |         },
+        |         "name": "com.mojang:minecraft:b1.6-tb3:client"
+        |     },
+        |     "name": "Minecraft",
+        |     "order": -2,
+        |     "releaseTime": "2011-05-23T00:00:00+02:00",
+        |     "type": "old_beta",
+        |     "uid": "net.minecraft",
+        |     "version": "b1.6-tb3"
+        | }
+      - Location:
+        - http://files.multimc.org/mc-versions/b1.6-tb3/client.jar
+      - https://s3.amazonaws.com/MinecraftDownload/prerelease/build.zip
+      - [x] Rehost
+      - Add to version list
+    - Put it on meta.multimc.org
+      - Maybe it needs to be distributed as binpatch over some other version?
+      - Can use the same jar building approach as future Forge?
+      - Or just rehost. Rehost works.
+    - Contact @gus33000 on twitter to get more unpatched versions!
+    - Contact https://twitter.com/cpcolin
+      - he might have old versions and insight into how things worked back then
+    - 0.0.23_01
+      - main class com.mojang.minecraft.k
+    - Versions on mega
+      - https://mega.nz/#F!xapEQJCT!ABxExpHHcRWOYzb6jzlwfg
+      - Use them, they are legit.
+  - Implement 'Trash' #usability #idea
+    - https://github.com/MultiMC/MultiMC5/issues/814
+    - Motivation: instance deletion is slow and blocks UI
+    - When you delete an instance, it is moved to the trash folder (in the instance provider)
+    - After some time, it is removed entirely by a background task
+      - Threaded
+      - It should only run when no instance is running to not disrupt the game
+    - User has to be able to restore deleted instances
+      - Add a trash view to the main window?
+        - Switchable views with tabs/toggle buttons on top?
+    - User has to be able to empty trash
+  - Organize testing and ways to contribute that way #idea
+    - PROBLEMS:
+      - We have ancient things that need to be burned and forgotten
+        - Migration is necessary
+        - Migration tools need to be tested
+      - We have new things that need to be tested in a variety of scenarios, most of them unknown
+        - More people who do more different things are needed
+    - Put test data somewhere
+      - MultiMC 3 instances?
+      - MultiMC 4 instances
+      - Old instances with 'version.json' and 'custom.json'
+      - Current stable instances
+    - Write introduction to testing
+    - We need tickets for things that are new and need testing
+    - Add a notice that shows up when people run the develop version for the first time, or when switching to it
+      - Link to the resources there
+  - Add import from generic minecraft folder #idea
+    - Look for the configs or clusters of well known folders:
+      - options.txt
+      - usernamecache.json
+      - saves
+      - logs
+      - mods, config
+    - Should ask for:
+      - Minecraft version
+  - Add a button that opens the central mods folder on the mod-related pages #idea 
+    - Possibly combine with the next item?
+  - Support separate folders in the central mods folder #idea
+    - Split it by Minecraft versions?
+  - Expand upon the dependency resolution #idea
+    - Actually use the version lists to determine versions of added/changed components #idea
+    - Use a graph separate from the main component list #idea
+    - Component list operations should be tasks - or some reactive component #idea
+      - Right now it is directly manipulated while ttasks are running in the background
+      - It should be aware of what is going on and act intelligently
+    - Support version ranges in dependency specifiers #idea
+      - Look for inspiration elsewhere...
+    - Separate addition to the component list from actual installation #idea
+  - Duplicate uid situations should be handled better #idea
+    - It would be useful to allow multiple components with same uid
+    - Only allow one of them to be enabled at the same time
+      - (requires enable/disable)
+      - Make enabled/disabled state visible to the dependency resolution
+  - Analytics improvements - report errors and GPUs #idea
+    - Exceptions
+      - Idea is to be aware of any update failures before people even start reporting them, ideally to know what platform it happens on.
+      - Update failure
+        - To version
+        - Full file update log
+        - What cause the failure
+        - Rollback failure, if present
+          - Full file rollback log
+          - What caused the failure
+    - Data
+      - Add reporting of GPUs installed
+  - Implement code signing on Windows? #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1418
+    - Inspiration:
+      - https://github.com/git-for-windows/git/issues/592
+    - https://en.sklep.certum.pl/data-safety/code-signing-certificates/open-source-code-signing.html
+    - Already paid for, finish and activate the cert
+    - Embed it in the builder setup - most likely in the packaging part
+    - https://www.certum.pl/certum/cert,wiedza_certyfikaty_code_signing_instalacja_certyfikatu_in.xml
+    - https://webcache.googleusercontent.com/search?q=cache:fSKQyCbjZBIJ:https://www.foolishit.com/2012/02/digital-code-signing-what-a-chore/+&cd=15&hl=en&ct=clnk&gl=us
+  - Make it clear which account is used by which running instance #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1524
+    - Instance window title bar
+      - 'MultiMC: 1.7.5 as peterixxx'
+      - 'MultiMC: 1.7.5 offline as "SomeOfflineName"'
+    - Main window status bar
+      - 'Minecraft 1.7.10 (OneSix), played for 59m 38s, currently playing as peterixxx'
+      - 'Minecraft 1.7.10 (OneSix), played for 59m 38s, currently playing offline as "SomeOfflineName"'
+    - [x] Account selection
+      - [x] Should display '(in use)' next to the already used accounts
+    - Minecraft titlebar
+      - Instance name
+      - Used profile
+      - 'Minecraft: 1.7.5 as peterixxx'
+      - 'Minecraft: 1.7.5 offline as "SomeOfflineName"'
+  - Make linux start script use system libraries first and packaged libraries when the first try fails #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1748
+    - https://github.com/MultiMC/MultiMC5/issues/1379
+    - https://github.com/MultiMC/MultiMC5/issues/1755
+    - dll hell
+  - Clear logs when possible instead of manually #idea
+    - Clear log and free memory when:
+      - Instance exits and instance window was already closed
+      - Instance is in final state (crashed, not running) and window is closing
+    - Keep logs after instance exits (Config option):
+      - All logs
+      - Only crashes (default)
+      - Nothing
+  - Add a way to specify account when launching from command line #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1795
+    - Something like `-u <PROFILE>`
+  - Ability to track arbitrary folders as instances or instance lists. #idea
+  - How to do installation of tweaker mods??? #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1777#issuecomment-271458870
+    - It really needs to change
+  - Actual modpack support
+    - Treating the exported instances as modpacks.
+    - Inclusion of suggested Java settings (like the absolute minimum of memory  needed to launch a modpack).
+    - Tracking of optional mods (both enabled and disabled by default).
+    - Tracking of server mods (both enabled and disabled by default).
+    - Full integration of Technic platform (and Solder).
+    - Possibly also integration with MCUpdater and AT Launcher.
+  - Investigate possibility of using https for MultiMC updates #idea
+  - Add support for Zuriki's crazy retrocraft servers #idea
+    - MultiMC would need to handle the retrocraft:// URL scheme, or accept such URLs in some 'servers' page of the instance
+    - Then it would have to allow directly launching/connecting to servers without relying on the game to provide server list UI
+    - Getting c0.30.01c servers to work and connecting to them -- manually
+      - Get the server:
+        - https://github.com/MisterSheeple/Cloth/releases
+      - Put it on a machine with public IP so people can connect
+      - Run it:
+        - java -Xmx2048M -cp cloth-server-rc.jar -Dhttp.proxyHost=classic.retrocraft.net -Dhttp.proxyPort=80 com.mojang.minecraft.server.MinecraftServer
+        - Stop
+        - Change `verify-names=false` in `server.properties`
+        - Run the server again
+      - Get an instance of c0.30.01c
+      - To get sound working, change its java args to include:
+        - -Dhttp.proxyHost=classic.retrocraft.net -Dhttp.proxyPort=80
+      - Go to https://www.retrocraft.net/servers.php
+        - Take a link like this:
+          - retrocraft://1.2.3.4/25565/c0.30_01c/20ea950303000267eb5d75f1ddb519cf
+        - Make a file named `mpticket` in the root of the instance, put this in it (adjust for the link above):
+          - 1.2.3.4
+          - 25565
+          - 20ea950303000267eb5d75f1ddb519cf
+      - Launch the instance
+  - CLI commands #idea
+    - Because of the design, all of this requires extensions to the IPC mechanism
+      - How:
+        - Client opens connection and authenticates (to make sure both are the same version)
+          - Authenication is not required for simple liveness probing
+        - Client sends command line args
+        - Server works on the task and sends progress and log messages back
+        - Server sends the final exit code and closes the connection
+        - Client displays the result / returns the exit code
+      - Do not break existing stuff
+      - Client has to be able to wait for the results of long actions and report on results
+      - 
+      - This has to work the same with the server and client being the same process (no IPC).
+    - Commands
+      - Start in server mode (no GUI)
+        - Either starts MultiMC in server mode and returns the new PID, or returns the existing PID
+        - stdout: PID 
+      - Exit (for server mode)
+      - Create instance
+      - Add component to instance
+      - Remove component from instance
+      - Delete instance
+      - Import modpack from URL or file
+  - Linux packaging #deploy #idea
+    - [x] We now have decent-ish packaging support in the build system
+      - Clean it up more
+      - Move install paths and layouts to the top level
+    - Debian
+      - https://hub.docker.com/r/spotify/debify/
+    - Write basic packaging recipes
+      - Arch
+        - We have Arch PKGBUILD for the git version
+        - Write the stable version
+      - DEB
+        - Ubuntu
+        - Debian
+          - Current Debian does not have the appropriate dependencies
+      - RPM
+        - OpenSuse
+        - Fedora
+      - Make it work in OBS?
+        - OBS does not have prereleases of distros, yet with Debian, that would be required
+        - https://build.opensuse.org/
+  - Forge intends to require jar signing #idea
+    - It would be nice to accept signatures across instances
+    - https://twitter.com/asanetargoss/status/876633807180283907
+    - http://www.minecraftforge.net/forum/topic/58706-regarding-minecraft-112-and-policy-changes/#comment-271167
+  - Better instructions for how to upload the correct log
+    - https://github.com/MultiMC/MultiMC5/issues/1296
+    - Both extending https://github.com/MultiMC/MultiMC5/wiki/Minecraft-Logs and maybe producing some sort of instruction video.
+    - No idea what specifically to add, but people frequently seem to have issue with uploading the right log. Often it's about the console window having closed, or being hidden, so maybe something about that, also something about Crash report vs. Full log.
+  - Use git for generating develop version numbers #idea
+    - git describe --long --tags | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+  - Check instance consistency in offline mode #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1887
+  - Testing with MultiMC4 instances #idea
+    - https://mega.nz/#!VuQBzRxD!ko2nFsKFKz-s9ItouQskpcad5bXqD7UgMNgvZ7NX3uI
+    - [x] Archive in redundant storage
+    - Broken, investigate:
+      - 1.3.2
+      - FTB Unleashed
+    - Credit Borgz Pony / Alucard next release for mmc4 test data
+  - Refactor downloads and tasks to be based on the same infrastructure #idea
+    - Downloads are just tasks that download files
+    - Redo NetAction, Download and NetJob so that downloads do not keep track of their own index within NetJob
+    - Recycle the failed attempt:
+      - https://github.com/MultiMC/MultiMC5/commit/e76e6329cdf4f1613c6303debd3ca43493147f7b
+    - Improve downloads #idea
+      - Post-condition of a download task is a file with known hash in a known location
+        - Start with checking post-condition first
+  - Replacements for the missing tray icon functionality #idea
+    - https://github.com/MultiMC/MultiMC5/issues/1785
+    - Option to minimize on launch
+    - Option to minimize to tray?
+    - Option to close to tray?
+    - The tray features should be entirely optional, there are environments where tray icons no longer exist.
+  - Basic documentation for custom themes #idea
+    - Describe formats
+    - Link to qss resources
+    - Contact Borgz Pony / Alucard on discord when done?
+  - Put CPU model, GPU models and driver versions into the Minecraft log #idea
+    - Minecraft does not report them properly/at all
+  - [x] 0.6.2
+    - [x] Skin uploads can fail due to use of file:// URL scheme #bug
+      - https://github.com/MultiMC/MultiMC5/issues/2134
+      - Fix it.
+    - [x] Add an 'open folder' button to the icons dialog #idea #usability
+    - [x] When changing version of or installing a package, remove customized version #bug #usability 
+      - It confuses people when the version doesn't change!
+    - [x] Change default build layout on linux to `lin-nodeps` #bug #usability 
+      - https://github.com/MultiMC/MultiMC5/issues/1780
+      - People building on linux do not expect this portable stuff and don't understand it
+    - [x] Delete the jar-modded Minecraft.jar after instance exit. #usability
+      - It should not be allowed to persist and be (fruitlessly) messed with by users.
+      - Auto-delete it on discovery.
+    - [x] Limit the stuff MultiMC is logging! #bug #critical
+    - [x] Update the logo #idea
+      - https://mega.nz/#F!1r5S1azS!yOJOoH9kvmXT9v_J3waWXw
+      - See `logos` in there.
+    - [x] Remove the obsolete updater #techdebt
+    - [x] JVisualVM path check does not work when the path is relative (inside the MultiMC folder) #bug
+      - Make sure it works with relative paths
+      - Not just check, the whole functionality
+    - [x] Delete instance text needs updating to reflect instance tracking being gone #bug 
+      - https://github.com/MultiMC/MultiMC5/issues/2089
+    - [x] Replace the skin status with the textures server status #bug
+      - https://github.com/MultiMC/MultiMC5/issues/2143
+      - https://bugs.mojang.com/browse/WEB-985
+      - https://www.reddit.com/r/MultiMC/comments/7x6bno/skins_not_working/
+  - [x] 0.6.1
+    - [x] The big curse URL and redirect Location header fail #bug
+      - Bad characters in URLs
+      - Unicode in URLs
+        - https://addons.cursecdn.com/files/2230/339/༼ つ ◕_◕ ༽つ-1.7.10-1.0-1.jar
+      - Make sure these work:
+        - https://gist.github.com/peterix/ec1bf9bdae13217a73ad1e56cbf49065#file-zzz-badness-lst
+    - [x] Group view scroll bar doesn't update properly #bug
+      - https://github.com/MultiMC/MultiMC5/issues/2119
+    - [x] Reorganize the build system so that the libraries can be installed properly
+      - Customized bundle utilities are buggy #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1780
+        - Fix it.
+      - Installed binaries have RPATH in the `lin-system` layout #bug
+        - Fix it
+      - Installed libraries do not have +x set #bug
+        - Fix it
+      - Test it. Build it all and test it.
+    - Release
+      - Update the version number
+      - Update changelog
+      - Write site post
+      - Build & deploy
+      - Post on reddit
+        - r/MultiMC
+        - r/FTB
+      - Post on twitter
+  - [x] 0.6.0
+    - [x] Implement flame folder things: #idea
+      - https://cursemeta.dries007.net/282543/2503302.json
+    - [x] Remove the 'parentUid' concept from metadata #meta #client 
+      - This was an early hack to make limiting of version lists work
+      - Instead, it should be using the actual dependencies and 'locked' versions
+    - [x] Move the metadata from meta.multimc.org to v1.meta.multimc.org #infrastructure #critical
+    - [x] Condense the patreon button text? #idea
+    - [x] Fix typo #bug
+      - Do you really want to these files?
+      - Want to what?
+        - want to delete.
+    - [x] Some icon themes are missing icons #bug
+      - Investigate
+      - Make some fitting placeholders?
+      - Contact author(s)?
+        - @pexner
+    - [x] Allow newer LWJGL versions and version selection #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1507
+      - https://github.com/MultiMC/MultiMC5/pull/1685
+      - We have just hardcoded 2.9.1 right now
+      - Expose Mojang LWJGL versions (first)
+        - Put version list on server
+          - 2.9.0
+          - 2.9.1 (current default, mark as recommended?)
+          - 2.9.4-nightly-20150209
+        - Check for more viable versions
+      - Other options (later):
+        - Repackaging upstream builds from sourceforge
+          - We already have a version list for this
+          - Missing install for 'onesix' instances
+          - https://github.com/MultiMC/MultiMC5/issues/1153
+        - Making a custom build
+          - See MultiMC fork
+          - Maybe that should be merged to upstream though
+          - Would allow customization and return of some missing features
+          - See packaging howto:
+            - https://bugs.mojang.com/browse/MC-48280?focusedCommentId=272756&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-272756
+          - Include:
+            - Support for window position, size and screen remembering
+            - Support for custom window icon and title
+    - [x] Import of packs from Curse platform
+      - https://github.com/MultiMC/MultiMC5/issues/918
+      - http://www.curse.com/modpacks/minecraft
+      - https://github.com/portablejim/curseDownloader
+      - Missing data and backwards formats... sadly.
+    - [x] Log checkbox status in the instance window is not saved #bug
+      - Store this info along with the log contents so it at least persists in one session
+    - [x] Version lists go poof for no observable reason #bug #client
+      - Already loaded version list gets replaced with an empty one...
+      - Seems to be random... must be some race condition
+      - I suspect the merge() and order of downloads between the main index and the other indexes...
+      - Investigate further
+    - [x] 5.6.x is apparently causing problems on Ubuntu 16.04 #bug?
+      - https://i.imgur.com/OGV63XJ.png
+      - Super slow start
+      - Investigate first
+      - Couldn't replicate...
+    - [x] Roll back linux builders to 5.4.x #infrastructure #client
+      - 5.6.x is not widely available, so the trick with deleting libraries doesn't work
+    - [x] Website build is broken #cricital #infrastructure
+      - https://github.com/MultiMC/MultiMC-Website/pull/4
+        - merged, OK... but it didn't help.
+        - There is apparently some ancient bug from 2015 in docpad:
+          - https://github.com/docpad/docpad/pull/1029/files
+          - This supposedly makes it fail to generate
+          - ... so why did it work in April 2017? We may never know.
+      - This needs an overhaul, or a placeholder.
+        - A: Fix docpad and hope nothing else breaks while quickly learning all the tech involved
+          - Again: https://github.com/docpad/docpad/pull/1029/files
+          - Involves forking docpad, somehow packaging it, changing the deps in the build system???
+        - B: Completely rework how it's done, use a different generator to preserve using markdown for posts.
+          - Jekyll?
+        - C: MacGyver it
+          - Take generated static site, version it in git, call it the source. 
+          - Pretty-print HTML.
+          - Add tiny RSS feed generator that can be run on local machine.
+          - Get rid of the complete build env.
+        - Decide.
+      - If it still uses a generator in the end:
+        - add tests for it
+        - build the site periodically and make sure the result doesn't change when the input doesn't change so there are no last minute surprises.
+          - Render to image, compare with previous, fail if different?
+    - [x] Build openssl with mingw on Windows #critical
+      - https://github.com/MultiMC/MultiMC5/issues/2060
+      - Current bundled version depends on https://www.microsoft.com/en-us/download/details.aspx?id=40784
+        - This is bad.
+      - http://www.stringcat.com/company_blog/2015/12/07/compiling-openssl-on-windows-mingw32/
+      - http://www.stringcat.com/company_blog/2015/12/07/undefined-reference-to-winmain16-when-compiling-openssl/
+    - [x] Reorder and reword toolbar icons to make it make sense and save space #idea 
+      - Folder, Help, Check for Updates, Settings -> Folders, Settings, Help, Update
+    - [x] Update the build environments #infrastructure
+      - [x] OpenSSL on Windows
+      - Qt everywhere to Qt 5.6.3
+        - Windows
+        - Linux 64
+        - Linux 32
+        - OSX 64
+    - [x] Instances folder is not created on first launch #bug #critical 
+      - https://github.com/MultiMC/MultiMC5/issues/2059
+    - [x] Do something about adding custom patches #bug #client
+      - Currently they are not autodiscovered
+      - Autodiscover -> add as disabled in order of discovery / dependency
+    - [x] Add flat icon theme
+      - https://i.imgur.com/AGs8F3R.png
+      - https://mega.nz/#!0nxiyZ4I!VDmXmOd5z3mjB2OqrGh_4RpU4-S3sGhNE4NZNQFx9SA
+      - Authors:
+        - google
+        - materialdesignicons?
+          - https://materialdesignicons.com/
+        - @Michael (Discord)
+    - [x] Removing current (last) account will not update the overall 'logged in account' status #bug 
+      - Make it deselect the account properly
+      - Make it save the accounts file
+      - Make sure that when the last account is removed, the game can no longer launch in online mode
+    - [x] Browsing for folders in settings and hitting cancel changes paths to '.' #bug 
+      - https://github.com/MultiMC/MultiMC5/issues/2050
+    - [x] Remove auth refresh when launching offline #bug 
+    - [x] Components should have a disable/enable checkbox, similar to mods #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1082
+    - [x] Dynamically added components are not watched for changes #bug
+      - Fix it.
+    - [x] Closing MultiMC does not finish scheduled ComponentList saves #bug
+    - [x] Disable/Remove the 'Packages' page from settings #bug #critical
+      - It is ugly, unfinished, and not particularly useful
+    - [x] Investigate and fix instance export dialog #bug #critical 
+      - The checkboxes are not working properly for some reason
+      - Find out why
+      - FIX IT!!!
+    - [x] Implement basic component dependency resolution #idea
+      - We need to support LWJGL 3 in Minecraft 1.13
+        - LWJGL must be implied by dependency, not hardcoded
+    - [x] Refactoring of MinecraftProfile #idea 
+      - It is a mess of different concepts smashed together:
+        - Component list
+          - Except only runtime, they are stored in the instance user config
+        - Fully resolved profile
+          - This means all the patches/components are applied to it
+      - It should be split into a ComponentList / Modpack and LaunchProfile
+        - Component list tracks the components and their individual metadata (/locations)
+        - LaunchProfile is an object that all the patches are applied to
+        - This will also need some sort of task that does the application and metadata fetching
+      - Effectively, this should make splitting user and pack config doable.
+      - Hunt down and fix the problem that causes instances to be unusable #bug 
+        - It's absolutely annoying.
+        - Should be fixed as part of this refactor
+    - [x] Patreon update is failing again #bug
+      - something ddidn't take hold?
+    - [x] Stuff is broken in paste.ee #bug 
+      - Bug reported on discord:
+        - https://discordapp.com/channels/258712566560194561/364467245226917892
+    - [x] Add class parser to the Legacy import #idea
+      - Use it to figure out Minecraft version when none is available
+      - Can be reused from MultiMC4, but must use quazip now
+    - [x] Instance icon button in toolbar does not preserve aspect ratio #bug
+    - [x] Default settings icon is not clear enough #bug
+      - People don't understand that it's settings and instead mess with the instance overrides
+      - Add labels
+      - Split out some buttons into menus, keep important visible
+        - Left:
+          - New instance
+          - Folders
+            - Instances
+            - Downloaded mods
+            - Downloaded jars?
+        - Right:
+          - Patreon
+          - Help
+            - Discord
+            - Reddit?
+              - It is extremely low traffic and I forget to look at it all the time
+            - Report a bug
+          - Settings
+          - Account selector
+    - [x] Add some sort of mode in which Java 9 works? #idea
+      - Fallback, even if it's not ideal (broken logging, etc.)
+      - https://github.com/MultiMC/MultiMC5/issues/1997
+    - [x] It is possible to set lower max memory than min memory #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1993#issuecomment-330092148
+      - Fix it.
+    - [x] Close instance window on successful migration #idea
+      - Show error otherwise?
+    - [x] Do not prioritize Java 9 in the found java versions dialog. #bug 
+      - Ideally do not even list it until we do support it, or make it unselectable.
+    - [x] Minecraft version should be extracted from version patch when the patch is custom #bug
+      - https://github.com/MultiMC/MultiMC5/issues/966
+      - Let's have a generic function that allows querying version by uid and use that everywhere.
+      - Minecraft version is just too special
+    - [x] Fix launch on java 9 #bug
+      - Pass classpath on command line
+      - Test paths:
+        - http://doc.qt.io/qt-5/qstring.html#toLocal8Bit
+        - http://doc.qt.io/qt-5/qstring.html#fromLocal8Bit-1
+        - If same as original, we're fine and do not need short path
+      - Use DOS 8.3 paths on Windows if there's any unicode in the classpath
+        - https://erasmusjam.wordpress.com/2012/10/01/get-8-3-windows-short-path-names-in-a-qt-application/
+        - https://bugreports.qt.io/browse/QTIFW-175
+        - https://codereview.qt-project.org/#/c/76868/1/src/libs/utils/fileutils.cpp
+      - Fail hard if there's an unresolvable situation
+        - Like having no 8.3 path names and unicode on the classpath
+    - [x] Instance / pack config #idea
+      - [x] Forge and Liteloader will no longer be added to the instance as patch files
+      - Instance configuration needs to be structured
+        - Objects with properties - JSON
+      - List of components (=patches) with versions
+        - Currently, it's 'IntendedVersion' and similar in the instance.cfg
+        - Replace the order.json with mmc-pack.json
+        - Component versions
+          - Wildcards (any, recommended)
+          - Exact versions
+          - Version is pinned
+            - pinned versions are treated as immutable for depsolving
+        - Do we want separate 'required' and 'actually installed' lists?
+          - Start with required, expand later if needed
+    - [x] Offline mode should avoid downloading metadata updates #bug
+      - in offline mode, no metadata updates are pulled
+      - it will still do dep checks
+      - and if there is anything missing, it will fail
+    - [x] Remove jutils and jinput from 1.13 snapshots
+      - It is a LWJGL 2 dependency and 1.13 doesn't need it.
+    - [x] Fix issues with version files with non-matching uid inside #bug #critical
+      - Filename change should force the uid to change
+    - [x] Duplicate uid situations should be handled #bug #critical
+      - Detect the situation
+      - Disallow loading multiple components with same uid until there is a proper solution
+    - [x] Merge to develop
+      - Remove unstable
+    - [x] Update changelog #critical #client
+    - [x] Tag #critical #client
+    - [x] Write a website post #critical #client
+    - [x] Release #critical #client
+    - [x] Investigaete BlazingPack #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1996
+      - Some sort of weird launcher thing
+      - Possibly violates Mojang rules?
+      - -> Not going to do anything about it.
+    - [x] paste.ee link in the settings is not clickable #bug
+    - [x] travis.ci is broken because of changes in the ppa layout #bug #infrastreucture
+      - https://travis-ci.org/MultiMC/MultiMC5/jobs/271568858
+      - trusty repo moved
+        - From:
+          - http://ppa.launchpad.net/beineri/opt-qt542/ubuntu
+        - To:
+          - http://ppa.launchpad.net/beineri/opt-qt542-trusty/ubuntu/
+      - Also investigate normal build env, it's probably also broken...
+    - [x] Patreon updater needs to be changed #infrastructure 
+      - We are trying to move our API forward and we noticed that you are using a deprecated attribute on the pledge resource called is_valid using client with ID <CENSORED>.
+      - This attribute is incorrect, instead you should be check if declined_since is null for a valid pledge or a date for an invalid pledge.
+    - [x] Antivirus is breaking instance creation #bug
+      - Files get locked by garbage AV when an instance is being created
+      - Final move to the instances folder is blocked by AV
+      - Retry with progressive backoff?
+    - [x] AUR package doesn't have proper build time dependency on a jdk? #infrastructure 
+      - Investigate
+      - Fix?
+    - [x] Vestigial/preemptive Flame optional mods support #idea  #planned
+      - https://github.com/MultiMC/MultiMC5/blob/8ace5fa91d7abaadc00758e1f6eeb692f424a8ab/api/logic/minecraft/flame/PackManifest.cpp#L8
+      - This is optional mods/files
+      - Document it in code somehow
+      - Log when you find an optional mod.
+    - [x] Implement extra Flame file types #bug 
+      - https://cursemeta.dries007.net/270078/2457838.json
+      - "_Project": {"Name": "The Official Connected Textures Pack", "PackageType": "singleFile", "Path": "resourcepacks", "PrimaryAuthorName": "Drullkus", "Summary": "Adds Connected Textures - Requires Connected Textures Mod"}}
+      - Fail for any other PackageType
+      - Use the path instead of just dumping things in 'mods'
+    - [x] Make Flame import tolerate missing overrides #idea
+      - This should make it resilient to importing of arbitrary flame packs already downloaded and played elsewhere
+    - [x] Add alternative to removed legacy support #idea
+      - https://mom-get-the.camera/DbHHtP.jpeg
+      - Import
+    - [x] Log upload is broken in the AUR package
+      - Update the API key
+      - Bump it to 0.6.0
+    - [x] In Minecraft auth, when you get 201 response to a refresh request: #bug
+      |  2429.453 D Task "LaunchController(0xcb178afe60)" started
+      |  2429.454 D Task "RefreshTask(0xcb17dde910)" started
+      |  2431.785 C Task "RefreshTask(0xcb17dde910)" failed:  "Authentication operation failed due to a network error: Error transferring https://authserver.mojang.com/refresh - server replied: Forbidden (201)"
+      - It's not a network error
+      - Prompt for password.
+      - Fixed in code, cannot reproduce anymore.
+    - [x] Verify that no information about MultiMC being used leaks into the Minecraft server
+      - wireshark!
+      - If something leaks, nuke it.
+      - I can't find any mention of MultiMC in the decrypted/decompressed traffic between client and server... 
+    - [x] Import does not work with instances folder set to `../data/instances`
+      - https://github.com/MultiMC/MultiMC5/issues/1971
+      - the 'same filesystem' check should resolve both paths
+    - [x] Uploading screenshots normally without ctrl+a doesn't work #bug
+      - Fix it some more...
+      - Use same issue number as the first fix
+    - [x] Custom paste.ee API keys do not work anymore? #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1839
+      - Investigate, fix it.
+    - [x] Ignore Java env vars also during tests #bug
+      - im getting the java test fail. the error code is
+        - didnt work with the arguments you provided. picked up _JAVA_OPTIONS: Xmx256M
+      - any easy fixes?
+        - KILL IT WITH FIRE
+      - proper fixes...
+        - always block java env vars
+    - [x] Add reference to Worflowy to the README
+    - [x] Selecting all screenshots makes them quadruplicate in uploaded album #bug
+      - CTRL + A
+    - [x] Fix legacy LWJGL, it's broken #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1895
+    - [x] The currently bundled SSL libs on Windows require some runtime garbage #bug
+      - http://www.microsoft.com/en-US/download/details.aspx?id=40784
+      - Bundle this instead:
+        - https://indy.fulgan.com/SSL/
+      - Or build it from source.
+    - [x] Importing instances with 'ä' in name does not work on Finnish Windows #bug
+      - Test
+      - Unable to reproduce this issue
+    - [x] Save window size and position of the update dialog #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1882
+    - [x] SSL is broken on some versions of OSX #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1398
+      - Maybe, we do not know which one.
+        - Log OS and OS version in the MultiMC log
+      - SSL errors for all downloads should be logged in full detail
+    - [x] Add 'Launch offline' to the instance window #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1855
+    - [x] Tell people that the proxy settings are not applied to the game #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1886
+    - [x] Custom icon themes #idea 
+      - See what would be needed for that
+      - Contact Borgz Pony / Alucard on discord when done? DONE
+    - [x] Zero byte downloads are not saved #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1885
+      - Fix it.
+    - [x] Fix third party library licensing issues #bug
+      - [x] pack200 #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1876
+        - Turn it into a shared library
+        - Backport?
+      - https://github.com/MultiMC/MultiMC5/issues/1876
+      - GroupView
+        - Custom extensions
+        - Newer/other versions:
+          - https://github.com/gustavosbarreto/qcategorizedview - LGPL
+          - https://api.kde.org/frameworks/kitemviews/html/index.html - newer!
+        - Move it out to a lib, clean up interface.
+    - [x] MultiMC updates can happen simultaneously to instance launch?? #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1500
+      - Test this.
+    - [x] Reload of instances after the FTB setting is toggled is missing #bug
+      - This is confusing to users.
+    - [x] Investigate broken exported pack #bug
+      - https://drive.google.com/file/d/0B2XsRvsr-iOMNTc1MEZCbmRPRFk/view
+      - Does not import properly on macOS and Linux
+      - Horribly broken permissions
+        - quazip cannot extract zip files with arbitrary broken permissions
+    - [x] Downloads are derpy and progress bars jump back and forth #bug
+      - Make progress bars not jump with unknown NetJob sizes
+    - [x] Metadata does not reload properly, causing libraries not to download #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1929
+      - https://github.com/MultiMC/MultiMC5/issues/1934
+    - [x] Upper Java memory limit should use the system memory size #idea
+      - It's hardcoded to 64GB now
+    - [x] Allow creating fully custom versions #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1314
+      - [x] Minecraft.jar is not a library
+        - Make it a library!
+        - Allow adding custom files to local library cache
+      - Add UI for inserting a custom main jar
+  - [x] 0.5.1
+    - [x] Bugfixes
+      - [x] Paste.ee needs to be switched to https
+        - It is becoming https only. SOON.
+      - [x] Fix typo 'loggging' #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1807
+        - ...
+      - [x] Minecraft log/console contains lots of empty lines after re-populating from #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1802
+        - Look into it
+        - Might be related to GH-1800
+      - [x] MultiMC log contains auth details #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1801
+      - [x] Copying FTB instances (import) is broken
+        - https://github.com/MultiMC/MultiMC5/issues/1794
+        - Settings file is opened twice at the same time, only one set of changes is written
+      - [x] Java setup does not show up properly when MultiMC is moved to a different machine
+        - https://github.com/MultiMC/MultiMC5/issues/1793
+      - [x] Some strings are not available for translation #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1788
+        - Fix it ASAP
+      - [x] It is impossible to delete icons #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1789
+        - Fix it
+        - Investigate if the folder watcher still works
+      - [x] Whatever other bad bugs that surface in the next week(s).
+    - [x] Features
+    - [x] Patreon
+      - [x] E-mail notifications do not arrive #bug #patreon
+        - We need to change the e-mail address!
+        - Bug @Forkk about it through all available channels.
+      - [x] Fraud status issue #bug #patreon
+        - When you make a pledge and the payments get declined for long enough, it is switched to a 'Fraud' status.
+        - This cannot be distinguished from a properly paid pledge in the API
+        - Bug Patreon support about it
+      - [x] Only actually eligible patrons should be in the about dialog
+        - No declined payments
+      - [x] Start using the real patreon API
+        - Write version 3
+          - https://github.com/MultiMC/PatronScraper2
+        - https://www.quora.com/Does-Patreon-com-have-an-official-API
+        - https://www.patreon.com/platform/documentation/clients
+      - [x] November 2016 report is missing #bug #patreon
+        - Bug Patreon support about it
+  - [x] 0.5.0
+    - [x] Do not show analytics wizard page if there is no analytics ID set #bug
+    - [x] If patches fail, they should be marked as failed, not break instance loading #terrible #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1029
+      - Show this in the GUI, keep the specific error around for the user to look at
+    - [x] Crash with no selected instance after settings are closed #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1743
+    - [x] Figure out the operating cost of MultiMC and tell @P3rf3ct_Zer0
+      - http://i.imgur.com/Bh6ReuD.png
+    - [x] Do not open browser on log paste
+      - [x] Write log URL into log so it doesn't get lost
+    - [x] Use basic color schemes + Qt fusion #idea
+      - https://github.com/MultiMC/MultiMC5/issues/903
+      - https://gist.github.com/QuantumCD/6245215
+    - [x] ``for some reason, i can't use mcedit with the latest develop multimc version'' #bug
+      - QProcess::start needs to be used because macOS
+        - reuse LoggedProcess - it has all the QProcess wrapping done already
+    - [x] Instance window defaults change #idea
+      - Do not show the instance window on launch
+      - Do not close the instance window on exit
+      - Show the instance window on error
+        - Add an option for this
+    - [x] Show crashed instance status as a status icon in the instance list #idea
+    - [x] Refactor and sanitize MultiMC startup/shutdown
+      - Only one exit point
+        - Decision is in a controller, not some UI class
+      - When closed:
+        - Last console window
+          - Clean up
+          - Run prompts if instance is running
+        - Main window
+          - Clean up
+          - Close all remaining windows and save their state
+          - Run prompts if instance is running
+    - [x] Closing MultiMC with instances running should prompt #idea
+      - ``You still have an instance running. If you close MultiMC, the post-launch commands won't run and MultiMC won't be there to catch and show you any crashes. Really close?''
+        - YES/NO
+    - [x] When Minecraft version is changed, the enabled pages are not updated #bug #usability
+      - https://github.com/MultiMC/MultiMC5/issues/1445
+      - We need a way to trigger updates to the list visibility
+    - [x] FTB load crashes unders certain conditions
+      - https://github.com/MultiMC/MultiMC5/issues/1713
+      - Probably shouldn't crash? ;)
+    - [x] Add a column with date/timestamp added #usability #idea
+      - https://github.com/MultiMC/MultiMC5/issues/347
+    - [x] Filesystem views can default to 'drive view', allow deleting C:
+      - https://github.com/MultiMC/MultiMC5/issues/1731
+      - Screenshots mainly
+      - TODO:
+        - [x] Fix problem
+        - [x] This needs to be made a lot more resilient:
+          - https://github.com/MultiMC/MultiMC5/commit/95f961fb6102f782482c057f51dae8ae8aed966c#diff-e8de8ed52cf4d1f14fc43808b6ead682R356
+    - [x] LWJGL version RSS location changed #bug
+      - Find where it has gone, change the location in code
+      - Make LWJGL list respect redirects by using Download class
+    - [x] Fix text of log upload dialog #bug
+      - http://i.imgur.com/wUoiF3M.png
+    - [x] Add config folder button to mods page #idea
+    - [x] Add kill instance action to main window #idea
+      - You should not have to open the instance window for that
+    - [x] MultiMC crashes when copying instance without saves #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1745
+    - [x] OSX dark theme has white on white buttons
+      - https://github.com/MultiMC/MultiMC5/issues/1690
+      - OUCH
+    - [x] Setup wizard!
+      - Java needs some polishing
+        - Describe failures somehow
+        - 
+      - [x] If it pops up during update, it prevents communication between the processes #bug
+        - The old process assumes the update failed and offers a rollback.
+        - Fix, this is a blocker.
+      - [x] It looks weird on Windows 10 #bug
+        - https://cdn.discordapp.com/attachments/134843027553255425/265199895491772416/unknown.png
+          - white look and feel sucks.
+          - http://doc.qt.io/qt-5/qwizard.html#WizardStyle-enum
+        - Fix it.... but how to test???
+      - [x] Ask user:
+        - [x] What language to use
+          - [x] Requires loading the language list from the website
+          - [x] Then select the language that's closest to the system language
+          - [x] Finish the view in settings
+            - It's buggy
+            - Doesn't change dynamically
+            - Doesn't download translations on the fly
+        - What java to use
+        - [x] If analytics should be on
+          - Finish saving the settings
+    - [x] Logging of machine stats #idea
+      - We have CPU/OS/Java bitness
+      - USE IT. PUT IT IN THE MMC LOGS, NOT JUST ANALYTICS.
+    - [x] Analytics
+      - Implement 'Analytics version'.
+        - When that changes, user is given a chance to opt out again.
+        - Test it.
+      - [x] Make sure this is sent in all requests:
+        - https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#aip
+      - [x] Add ganalytics license to about box
+      - [x] Add ganalytics license to codebase
+      - [x] It should not log IPs or any other such private information!
+      - [x] Add analytics toggle to settings
+      - [x] Fix metrics
+        - Java memory
+        - System memory
+        - No idea how to treat those...
+      - [x] Fix user agent strings
+        - MultiMC5/$version
+      - [x] What data?
+        - [x] Install UUID
+        - [x] MultiMC version
+        - [x] OS + OS Version
+        - [x] RAM size #memory-statistics
+        - [x] Java
+          - [x] Java version
+          - [x] Java 32/64bit
+          - [x] Java RAM settings - min / max / permgen
+      - [x] Reports
+        - [x] Number of users per operating system, including version and distro
+        - [x] Number of users per language
+        - [x] Java versions used
+        - [x] Available RAM size #memory-statistics
+    - [x] Liteloader has weird issues
+      - https://github.com/MultiMC/MultiMC5/issues/1697
+      - [x] MultiMC does not prefer existing file when the remote file is no longer accessible
+      - Liteloader's server is somehow broken.
+        - @Mumfrey needs to fix his redirects
+    - [x] Add a bright theme to match the Dark theme
+    - [x] Other
+      - [x] Get rid of Waffle.io, no longer used
+        - Remove from website
+        - Delete board
+        - [x] Remove from reddit
+        - Remove from discord
+    - [x] Console not attached on start on Windows
+      - https://github.com/MultiMC/MultiMC5/issues/1586
+    - [x] "<PREFERREDLANGUAGE>" showing in Minecraft logs #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1643
+      - ignore PREFERREDLANGUAGE, it's bogus and breaks logs
+    - [x] Refactor and redo the version file loading and version data structures to support the new format
+      - Object should store downloads - for now
+        - Old implicit download locations will be resolved at file read time
+      - Use:
+        - [x] jar locations from the version file
+          | URLConstants::AWS_DOWNLOAD_VERSIONS
+          - client
+          - server
+          - 'windows server'?
+        - [x] asset file location from the version file
+        - [x] library download lists
+        - [x] For all:
+          - If not present, default to previous behaviour
+    - [x] Unify console window and edit instance #usability
+      - [x] Direct launch does not work anymore #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1642
+      - [x] Make instance windows independent 
+        - https://github.com/MultiMC/MultiMC5/issues/1639
+      - [x] Minecraft log should be stored in some sort of model instead of dumped in a text view directly
+        - QListView didn't work out
+          - Maybe a view one out of the QPlainTextEdit that's used right now.
+          - teach it how to respond to model changes.
+      - [x] Add  start/restart button to console window #usability
+        - https://github.com/MultiMC/MultiMC5/issues/700
+        - https://github.com/MultiMC/MultiMC5/issues/513
+      - [x] Running multiple instances #usability
+        - https://github.com/MultiMC/MultiMC5/issues/338
+        - [x] When an instance is running, it should not be allowed to change it significantly
+        - [x] MultiMC should be able to close while instances are running
+        - It is not clear which account is used for which running instance - fix that somwhow
+      - [x] Fix up loose ends
+        - [x] Set up single application instance logic
+        - [x] Notify instance windows about:
+          - disappearance of instances
+            - mark instances as gone, send event
+        - [x] Instance creation needs to be a task
+          - [x] from zip
+          - [x] from version
+        - [x] Instance window hide/minimize/close
+          - https://github.com/MultiMC/MultiMC5/issues/1645
+          - [x] Respect the settings
+          - [x] Move launch task change handling from InstanceWindow to LaunchController
+            - on_InstanceLaunchTask_changed
+            - onSucceeded
+            - onFailed
+            - onProgressRequested
+        - [x] 'Keep updating' console window checkbox doesn't work #bug  #WIP
+          - https://github.com/MultiMC/MultiMC5/issues/1675#issuecomment-251938353
+        - [x] Reinstate legacy Minecraft launch
+          - launchwrapper is not sufficient for legacy
+          - We need the custom version files
+        - [x] Full instance reloads do not work with the current design
+          - [x] Port FTB
+          - [x] Instance providers should be installed by the application on start, not by InstanceList
+          - [x] Port instance creation
+          - [x] Port instance copy
+            - Source is an instance
+            - Target is an instance provider
+        - [x] Save changes to instance on launch
+          - https://github.com/MultiMC/MultiMC5/issues/1652
+        - [x] Trigger main window toolbar update on instance exit
+          - https://github.com/MultiMC/MultiMC5/issues/1652
+    - [x] Allow instances to hold local libraries #idea
+      - Make libraries redistributable with the instance (libraries folder inside)?
+      - When exporting a pack, the local custom libraries should be exported along with the pack
+    - [x] Mojang version file changes
+      - https://github.com/MultiMC/MultiMC5/issues/1453
+      - Consider using the sha1 checksums
+    - [x] Account selection when no account is default shows e-mails #terrible #bug #security 
+      - https://github.com/MultiMC/MultiMC5/issues/1433
+    - [x] Multiple launch methods
+      - MultiMC launcher part
+        - Default
+      - Vanilla-like
+        - Just use the params...
+        - Test with Nodus
+    - [x] Insertion rules need to stay #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1508
+      - Without insertion rules, log4j breaks
+      - Replace with library order rules
+        - sortBefore = [ a, b, c ]
+        - sortAfter = [ d, e, f ]
+        - Example:
+          - {
+            - "name" : "mystery.meat:component:1.2.3",
+            - "sortAfter" : [ "net.minecraftforge.forge" ],
+            - "sortBefore" : [ "net.minecraft:launchwrapper" ]
+          - },
+          - Effect:
+            - this establishes that a library is sorted before launchwrapper and after forge
+            - in effect, forge will always precede launchwrapper in classpath order
+        - Example 2:
+          - {
+            - "name": "net.minecraftforge:forge:1.7.10-10.13.4.1558-1.7.10:universal",
+            - "url": "http://files.minecraftforge.net/maven/",
+            - "sortBefore" : [ "net.minecraft:launchwrapper" ]
+          - },
+          - Effect:
+            - Forge is sorted before launchwrapper and logging works
+    - [x] MultiMC should complain loudly about the version file not loading properly!!!! #bug
+    - [x] Strip whitespace from instance folder names
+      - https://github.com/MultiMC/MultiMC5/issues/156
+      - https://github.com/MultiMC/MultiMC5/issues/1560
+      - It makes java misbehave, see issues
+    - [x] Liteloader snapshots
+      - [x] Implement it
+        - http://dl.liteloader.com/versions/versions.json
+        - if you request http://dl.liteloader.com/versions/com/mumfrey/liteloader/1.8.9-SNAPSHOT/liteloader-1.8.9-SNAPSHOT.jar then it'll redirect to the other maven
+        - basically with snapshots, it's supplying the base url of a maven repo in the url, just like for non-snapshots
+        - then because the actual artefact information isn't available, it's just specifying the stuff which would normally be in the artefact block (eg. libraries) in the "snapshots" block, effectively saying this applies to all snapshots
+        - This will need marking libraries as 'always check' - possibly limiting the check to once a day, or N hours
+        - Full list:
+          | the snapshot repo is a full blown sonatype nexus install
+          | http://repo.mumfrey.com/
+          | for example, 1.9 snapshots: http://repo.mumfrey.com/content/repositories/snapshots/com/mumfrey/liteloader/1.9-SNAPSHOT/
+      - Make the version list pretty
+        - Use information about 'latest' and 'latest snapshot' properly
+          - Bug and star icon must work
+        - Sort by timestamp
+    - [x] Themes
+      - Custom css based theme
+    - [x] I've noticed a crash on exit on Windows after some running of random instances
+      - Run valgrind and check for leaks and crashes
+      - Build a debug build on windows and check with a debugger
+    - [x] Do something about linux compatibility #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1699
+      - libxcb.so.1 causes problems on newer distros
+    - [x] Linux updates get into undefined state because they don't check if the new binary works
+      - https://github.com/MultiMC/MultiMC5/issues/1726
+    - [x] macOS 10.12 breaks third party applications #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1665
+      - This is a problem in macOS.
+      - Installation has to be done to ~/Applications or /Applications
+      - Workaround:
+        - Only on OSX
+        - Somehow figure out how to detect this at runtime before we attempt to write anything (including logs)
+        - Tell people during start (show a dialog and abort launch)
+    - [x] Release process
+      - [x] Update copyright texts
+        - 2016!
+      - [x] Switch over analytics to a clean account
+      - [x] Write changelog
+      - [x] Push macOS and linux builds!
+      - [x] Write site post
+      - [x] Windows avast situation
+        - We have problems with overzealous antivirus on Windows
+        - https://forum.avast.com/index.php?topic=191951.0
+        - https://forum.avast.com/?topic=191951.0
+        - Submit stable release to antivirus companies before release
+          - Temporarily disable automatic deploy and translation update
+          - Submit to Avast!
+          - Deploy manually
+          - Run translation updates
+        - [x] Make sure update is not broken by avast
+          - Actually test this
+      - [x] Publish site post
+      - [x] Cross post to Reddit
+      - [x] Tweet
+    - [x] Maybe later
+  - [x] 0.4.11
+    - Code
+      - [x] Mojang version file changes
+        - [x] Only bump minimum launcher version - workaround only
+        - [x] Handle minimumLauncherVersion only on input from Mojang
+        - [x] Pass version_type to Minecraft
+        - https://github.com/MultiMC/MultiMC5/issues/1453
+      - [x] Launch script should be generated after instance update #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1502
+    - Build system
+      - [x] 0.4.{8,9,10} does not work on OSX 10.7 #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1410
+        - https://github.com/MultiMC/MultiMC5/issues/1410#issuecomment-173772320
+        - [x] Upgrade mini to latest everything.
+        - [x] Install the 10.7 SDK:
+          - https://github.com/MultiMC/Mac_OSX_SDKs
+        - [x] Set up build service on mini
+        - [x] Fully document this so it is repeatable
+        - [x] Build and verify build with a 10.7 user
+    - Build system & distribution
+- Patreon
+  - Create a list of previous patrons
+    | (the patron lists, by month, left out)
+    - Maintain it automatically
+  - Improve patron list in About dialog
+    - Use the new JSON list
+    - Improve the list generator
+      - Also process people without the reward, but save them as a hash of their name
+      - Hashed patrons are only counted, not listed
+      - [x] Use the new property to filter out 'Fraud'
+        | We have pushed the change and a new field should be exposed called `is_valid` that will do what you're after!
+        | That field does not show up by default and you have to ask for it using `fields[pledge]=`. See our API docs and JSONAPI docs for more information.
+      - [x] &fields[pledge]=blah,foo,bar,baz
+  - Set up separate account for Patreon and MultiMC related expenses
+    - The alternative is too messy.
+  - Set up more goals
+- Refactors
+  | Code quality improvement with no impact on features
+  - clean up World.cpp - most likely split of level.dat handling into a separate class #refactor
+  - GuiUtil::uploadPaste needs to be turned into a proper task #refactor
+- Infrastructure
+  - [x] Push build notifications to github
+    - http://docs.buildbot.net/current/manual/cfg-statustargets.html#githubstatus
+    - Or implement discord in buildbot?
+      - http://discordpy.readthedocs.io/en/latest/
+  - Digitally sign releases on macOS
+    - Requires feeding Apple more money per year
+    - Implement code signing on OSX #maybe
+    - Read
+      - https://stackoverflow.com/questions/31709087/failure-digitally-signing-a-mac-app-outside-xcode
+      - http://doc.qt.io/qt-5/osx-deployment.html
+      - http://blog.qt.io/blog/2014/10/29/an-update-on-os-x-code-signing/
+      - https://developer.apple.com/library/mac/documentation/Security/Conceptual/CodeSigningGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005929-CH1-SW1
+      - http://successfulsoftware.net/2012/08/30/how-to-sign-your-mac-os-x-app-for-gatekeeper/
+      - http://successfulsoftware.net/2014/10/17/signing-qt-applications-for-mac-os-x-10-9-5-and-10-10/
+  - Document github issue workflow
+  - Set up a saner translation process
+    - https://github.com/MultiMC/MultiMC5/issues/1077
+    - https://github.com/MultiMC/MultiMC5/issues/1324
+    - Let people translate during development so translations are available on release
+    - Do not include bad/incomplete translations
+    - Document the process
+  - Add a 'Need help?' section to the website, reddit, discord
+    - Links to useful resources
+      - Articles
+        - http://www.howtogeek.com/202661/how-to-manage-minecraft-instances-and-mods-with-multimc/
+      - Videos
+        - https://www.youtube.com/watch?v=OdBfQKkOel4
+          - Actually the whole series
+- Bugs
+  - External
+    - [x] Microsoft
+      - [x] Windows 10 preview 14251 does not work with MultiMC #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1440
+    - Qt
+      - System themes have serious issues #bug
+        - https://github.com/MultiMC/MultiMC5/issues/1790
+        - Especially on macOS - ugly colors, or no change of colors when switching themes
+      - Windows has horrible DPI scaling and Qt doesn't handle it well #bug
+        - https://github.com/MultiMC/MultiMC5/issues/647
+        - We need to update Qt on Windows
+      - KDE frameworkintegration package breaks themes #bug
+        - https://github.com/MultiMC/MultiMC5/issues/796
+        - https://bugs.kde.org/show_bug.cgi?id=344469#c11
+        - We have a workaround in place, duplicating all icon loading logic of Qt to avoid the broken plugins
+      - Full-screen of MultiMC  on OSX Yosemite (10.10) sometimes breaks #bug #usability
+        - https://github.com/MultiMC/MultiMC5/issues/955
+        - https://github.com/MultiMC/MultiMC5/issues/1387
+        - Possibly related: https://bugreports.qt.io/browse/QTBUG-39210
+    - [x] Linux window management
+      - [x] Title bar out of desktop in Lubuntu linux #bug
+        - https://github.com/MultiMC/MultiMC5/issues/748
+      - [x] MultiMC launcher moves up tens of pixels every launch when not maximized #bug
+        - https://github.com/MultiMC/MultiMC5/issues/879
+      - [x] Tray icons suck on linux #bug
+        - https://github.com/MultiMC/MultiMC5/issues/403
+        - Remove tray icon once we have the ability to run multiple instances and keep logging in the background
+        - Track running things in the main window
+      - Log window hides when computer is locked on XFCE??? #bug
+        - https://github.com/MultiMC/MultiMC5/issues/848
+        - There are no tray icons, so it can't be brought back properly.
+        - Remove tray icons and the special snowflake behaviour
+  - Internal
+    - UI
+      - Instance export dialog shows all directories as 'able to expand', even when they are empty #bug #usability #external
+        - https://bugreports.qt.io/browse/QTBUG-47531
+        - Maybe could be worked around by overriding the QFileSystemModel hasChildren method and negating some of the optimizations there
+          - Or just fork it and make a version suitable for Minecraft instances?
+      - UI refers to both 'folder' and 'directory'. This should be consistent. #bug #usability
+        - https://github.com/MultiMC/MultiMC5/issues/1065
+      - Paged dialog / console window should allow contracting the side bar, it's too big #bug #usability
+        - https://github.com/MultiMC/MultiMC5/issues/388
+        - Allow user to squash the side bar to just icons without labels
+      - Minecraft log sometimes doesn't autoscroll when the window is just the wrong size #bug #usability
+        - https://github.com/MultiMC/MultiMC5/issues/1415
+    - MultiMC generates unnecessary folders for versions that do not need them #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1010
+      - For example:
+        - 'texturepacks'
+        - 'coremods'
+      - Root cause is that pages are always there, and create the folders when they are created.
+        - Initialization should be deferred.
+    - File access is missing error checking #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1766
+      - It does not give a proper error message and breaks at lots of points silently.
+      - check the permissions of the files in the MMC folder or check for the problem in some other way 
+    - Instance names and paths need more sanitation #bug
+      - https://github.com/MultiMC/MultiMC5/issues/847
+      - https://github.com/MultiMC/MultiMC5/issues/1105
+      - https://github.com/MultiMC/MultiMC5/issues/1674
+      - https://github.com/MultiMC/MultiMC5/issues/2238
+      - ( ͡° ͜ʖ ͡°) makes Java sad when loading native libraries...
+      - Test () in path too!
+      - Also, spaces at the end of instance names:
+        - https://github.com/MultiMC/MultiMC5/issues/1674
+      - And spaces within the name should be replaced with _
+        - spaces in path break the saintspack mod
+          | [17:44:14] [Client thread/INFO]: [wthieves.mods.saintspack.mod_Saintspack:preInit:129]: java.io.FileNotFoundException: C:\Users\Michaël\Downloads\mmc-stable-win32\MultiMC\instances\ChrensenCraft%202\minecraft\mods\saintspack\Packs.txt (Le chemin d’accès spécifié est introuvable)
+    - Legacy Minecraft window looks weird on OSX #bug #usability
+      - https://github.com/MultiMC/MultiMC5/issues/699
+      - Has empty bar on top, as high as the title bar
+      - Remove old legacy window, done.
+    - Crash when selecting java? #bug #verify
+      - https://github.com/MultiMC/MultiMC5/issues/1460
+      - Maybe.
+    - Big IO usage on Linux #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1318
+      - Measure, verify, close if invalid.
+- Ideas #idea
+  - Launching
+    - [x] Remove legacy launcher part - onesix can fully replace it #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1036
+    - Allow launching from command line with a specified account or offline #idea
+    - Allow using Java agent classes (required for some odd mods) #idea
+      - https://github.com/MultiMC/MultiMC5/issues/764
+    - Separate out launcher part #launch-agent #idea
+      - Rewrite it in C
+        - Name it Minecraft.exe on Windows ???
+          - Workaround for switchable graphics / optimus
+        - Fully static binary
+        - Starts a fake java binary
+        - Similar interface to the launcher part, except it should also accept all Java args
+        - Will handle logging and log rotation
+          - Should be interactive??? Log fetching should be a thing.
+        - Will handle cleanup after the Java process finishes or crashes
+        - Should run independently from MultiMC
+          - When MultiMC exits, it will continue running
+          - MultiMC will remember what ran where and reconnect to it afterwards
+        - Should support multiple instances running from the same path
+          - https://github.com/MultiMC/MultiMC5/issues/526
+      - Toss the old Java code.
+    - Server/client launch agent #launch-agent
+      - Dumb launcher and process manager
+      - Use libssh for communication
+      - Statically compiled with minimal dependencies
+      - Handles logging and log rotation
+      - Local agent
+        - Runs as a local process
+        - Can manage:
+          - local client
+          - local dedicated server
+      - Remote agent
+        - Runs as a service on remote server
+        - Will require access management and user accounts?
+        - Should support sandboxed filesystem access
+          - Only subfolder(s) of its 'home'
+        - Can be instructed to install servers
+        - Can manage:
+          - multiple remote servers (managing all minecraft servers on a node)
+      - On start:
+        - MultiMC would try to reconnect to all the local stubs left behind
+        - MultiMC would probe all the known remote agents for running servers
+    - Allow customizing the environment variables of the launched process #idea
+      - Requires changes to global and instance settings
+      - https://github.com/MultiMC/MultiMC5/issues/1050
+    - Add support for launching in a debugger for early failures #idea
+      - https://github.com/MultiMC/MultiMC5/issues/256
+    - Add customizable launch steps
+      - Automatic upload of crash logs
+        - https://github.com/MultiMC/MultiMC5/issues/1687
+        - How/where to upload?
+          - Integrate with github somehow?
+          - Existing paste.ee integration + per-instance/pack API key
+            - It doesn't have a way to list the uploads...
+          - Add a scripting hook and let the user write the rest...
+      - Make these a property of instances
+      - Make these a property of modpacks
+      - Possibly make scriptable?
+  - Minecraft features
+    - Support for jar mods in other archive formats #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1943
+      - RAR, possibply others?
+      - Involves swapping out quazip for something else
+        - rewrite of stuff that uses quazip
+        - use libarchive?
+          - https://github.com/libarchive/libarchive
+        - use karchive?
+        - more dependencies?
+          - bzip?
+          - rar?
+          - proper lzma and xz?
+          - other archiving formats?
+    - Use minecraft profile name in offline mode
+      - The game apparently doesn't sometimes?
+      - https://github.com/MultiMC/MultiMC5/issues/735
+    - Filter version lists based on release types #idea
+      - https://github.com/MultiMC/MultiMC5/issues/826
+      - Add UI for it when adding components to the instance
+      - Should be generic and at the same time usable in all the specific cases
+      - Sane defaults (hide Minecraft snapshots for example)
+    - LWJGL
+      - Error when legacy LWJGL is not accessible #bug
+        - Make it use the normal LWJGL
+        - Get rid of legacy LWJGL (or move it)
+      - Legacy launcher part does not fix LWJGL libs on OSX #bug
+        - https://github.com/MultiMC/MultiMC5/issues/797
+    - Version lists
+      - Forge mercurius???
+        - Just how is this thing handled???
+        - Needs investigation.
+        - Seems to fail to install even with the forge installer.
+      - Meddle loader?
+        - http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/2488387-meddle-minecraft-tweakclass-mod-loader-1-9
+      - m3l
+        - http://www.cuchazinteractive.com/m3l/
+      - Optifine?
+        - https://github.com/MultiMC/MultiMC5/issues/1506
+        - Just a mod, but a good one to start with, because it is behind an ad gate/wall
+        - Thing that enumerates OF downloads:
+          - https://gist.github.com/RubenNL/bff6ca3badfa7915a89743550653bfa0
+    - Minecraft Skins
+      - Show a 3d redndering of the current skin in th Accounts page #idea
+        - 
+      - Periodically refresh the skins #idea
+        - Instead of once per MultiMC start
+      - [x] Set skin from MultiMC directly @robotbrain #work-in-progress
+        - https://github.com/MultiMC/MultiMC5/issues/767
+      - Have a list of skins in a 'skins' folder that you can pick from? #idea
+        - Model should be populated form existing accounts + the folder
+        - Alternatively import skins from added accounts to the folder and also do so when the skin changes externally?
+      - Integrate some sort of skin editor? #idea
+        - Or just run an image editor and let user set an override on top of the OS default
+    - Set up / use file mirror in China #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1317
+      - https://github.com/MultiMC/MultiMC5/issues/1311
+      - Getting stuff through the Chinese firewall is slow - we should mirror everything there
+      - Contact @cqjjjzr - the person who also translated MultiMC to Chinese
+      - Game/Forge/Liteloader Mirror: http://bmclapi.bangbang93.com/
+      - Maybe MultiMC could be mirrored there too
+        - Also wonko repos and mods?
+    - Screenshot upload
+      - Imgur delete hash doesnt work #bug #usability
+        - https://github.com/MultiMC/MultiMC5/issues/741
+        - Provide an actual delete link, at the very least!
+      - Notification after upload is obstructive #bug #usability
+        - https://github.com/MultiMC/MultiMC5/issues/272
+        - Hides behind windows if you switch to the game without closing it
+      - Opening the website after upload should be optional #idea #usability 
+        - https://github.com/MultiMC/MultiMC5/issues/556
+      - Add sorting options to the screenshot view #idea #usability
+        - https://github.com/MultiMC/MultiMC5/issues/268
+        - At least up/down sort by date
+        - How does this affect sorting of uploaded screenshots?
+      - There's no way of using your existing imgur.com account #idea
+        - https://github.com/MultiMC/MultiMC5/issues/1089
+      - Is missing a way to upload single screenshots - always an album #idea
+        - https://github.com/MultiMC/MultiMC5/issues/689
+      - Album options are missing. imgur.com has plenty #idea
+        - You cannot change the title of the album
+      - Is not tracking uploaded stuff
+        - Consequence: you cannot delete the uploaded stuff easily
+      - There are other sites than imgur.com
+        - https://github.com/MultiMC/MultiMC5/issues/1160
+    - Disable Forge splash screen on platforms where it causes problems
+      - https://github.com/MultiMC/MultiMC5/issues/1426
+      - Requires hardware awareness
+    - Game and mod config editor
+      - https://github.com/MultiMC/MultiMC5/issues/1200
+      - First level:
+        - List configs and let user open them
+        - Config snapshots?
+      - Second level:
+        - UI for config editing
+          - Model the document
+          - Declarative UI - map config items to UI with scripts and something like XPath
+      - Specific mod configs:
+        - Dynamic lights mod
+          - https://github.com/MultiMC/MultiMC5/issues/1601
+          - Configurable by deleting 'modules' from inside the jar
+          - https://github.com/AtomicStryker/atomicstrykers-minecraft-mods/blob/1.8.9/DynamicLights/resources/readme.txt
+    - Server support
+      - Acquire more server jars
+        - Continue with that - contact @Grum again...
+      - Add server export feature #idea
+        - https://github.com/MultiMC/MultiMC5/issues/60 ?
+        - Take instance, use the existing export dialogs to pick and choose files to 'server-export
+        - Add server jars
+          - Metadata/wonko required, See:
+            - https://github.com/robotbrain/apoapsis/tree/master/lib
+        - Transform the instance layout to a server layout
+      - Running server for pack testing directly from MultiMC #idea
+        - https://github.com/MultiMC/MultiMC5/issues/60
+        - Start a persistent server on local machine for testing and play without using the LAN option inside the game
+        - Requires mods and other resources to have sidedness
+          - client only mods make servers crash for example
+        - Use the #launch-agent
+      - It might be possible to get bukkit and spigot jars
+        - getbukkit.org
+        - If / when it has an API and loses the horrible ad-gated download links
+    - Third party tool integration
+      - Integrate MCPatcher
+        - https://github.com/MultiMC/MultiMC5/issues/817
+        - It creates customized Minecraft jars
+        - Integrate a version that doesn't depend on the Mojang launcher
+      - Integrate Resource Pack Workbench
+        - https://github.com/MultiMC/MultiMC5/issues/1219
+        - This would require changing rpw to not need to mess with the vanilla setup
+          - RPW needs:
+            - assets key
+            - jar path
+            - assets folder path
+            - mods folder path
+          - Then it should be told to use a workspace inside the instance in question
+        - Add CLI interface to it, so it can start with the supplied data
+      - Integrate with OpenEye
+        - For errors - submit log to OpenEye, get back some sort of error analysis?
+          - https://github.com/MultiMC/MultiMC5/issues/544
+        - For raw data
+          - As input for wonko
+    - World management
+      - Add back world snapshots using git and/or similar tool on the backend
+      - Add automatic world backups
+        - https://github.com/MultiMC/MultiMC5/issues/745
+        - Check how AT launcher does it, apparently they have some simple checkboxy solution
+        - Incremental?
+      - Add size column to world list
+      - use the session lock when writing to worlds
+        - http://minecraft.gamepedia.com/Level_format#session.lock_format
+      - Do not reload whole world list every time, only reload changed worlds
+      - Read the mod list from worlds and use it
+        - detecting if there are mods missing
+          - finding mods?
+      - enable multiple selection and test all the features with it
+      - Add generic NBT editor
+        - Our own
+          - https://github.com/MultiMC/MultiMC5/issues/1239
+        - External
+          - ???
+      - Integrate AMIDST tool
+        - https://github.com/MultiMC/MultiMC5/pull/203
+      - Mod/pack integration
+        - Track and allow restoring backups made by aroma backup
+          - http://minecraft.curseforge.com/projects/aromabackup
+        - Allow managing world templates (like sometimes used in modpacks)
+          - https://github.com/MultiMC/MultiMC5/issues/1385
+    - Minecraft keybind management
+      - https://github.com/MultiMC/MultiMC5/issues/1302
+      - edit keybinds
+      - possibly add magical global keybinds?
+        - This is crazy
+    - Mod list
+      - Organise mods in (virtual) folders or categories #idea
+        - https://github.com/MultiMC/MultiMC5/issues/1835
+        - Having root-folders/categories like tech, magic, decoration etc.
+        - Place library-mods together with their dependants.
+      - Rewrite mod list based on QFileSystemModel #idea
+      - Avoid reloading the whole list every time #usability #idea
+      - List folders recursively (tree view instead of a flat list) #usability #idea
+        - https://github.com/MultiMC/MultiMC5/issues/575
+        - The stupid 1.7.10 or whatever version specific folder...
+          - Maybe this could be just a tag added to Forge versions. #wonko
+      - Allow enabling/disabling mods using spacebar #usability #idea
+      - When parsing mcmod.info, strip 'Minecraft formatting' #idea #usability 
+        - https://github.com/MultiMC/MultiMC5/issues/746
+        - Stuff like the §# codes need to be removed
+          - http://minecraft.gamepedia.com/Formatting_codes
+      - Check for duplicates using file internals #mod-dupes #idea
+        - https://github.com/MultiMC/MultiMC5/issues/1013 
+        - read mcmod.info and if there is the same mod ID coming from multiple files, show a warning
+      - Allow exporting the mod list in various formats #idea
+        - https://github.com/MultiMC/MultiMC5/issues/184
+      - New columns
+        - Add Filename column to mod list #idea
+          - https://github.com/MultiMC/MultiMC5/issues/1644
+          - Maybe make this toggleable.
+      - Allow drag and drop between multiple mod lists #idea
+        - When you have more than one open on screen
+        - Move (shift)
+        - Copy (ctrl / default)
+      - Show mod stats #idea
+        - Number of enabled vs. total
+        - Put it somewhere:
+          - Above 'View folder'?
+          - On top - between page title and the page icon?
+      - [x] Add a way to mass enable/disable mods #usability
+        - https://github.com/MultiMC/MultiMC5/issues/901
+        - https://github.com/MultiMC/MultiMC5/issues/1117
+        - https://github.com/MultiMC/MultiMC5/issues/589
+        - https://github.com/MultiMC/MultiMC5/issues/842
+      - [x] Allow multiple selection #usability 
+        - [x] https://github.com/MultiMC/MultiMC5/issues/1273
+        - [x] Allow non-contiguous selection
+      - [x] Allow sorting by clicking column headers #usability 
+    - Resource pack list
+      - Add a way to add folders using a button #usability 
+        - https://github.com/MultiMC/MultiMC5/issues/421
+        - Alternatively the current browse dialog should also accept folders
+  - Application core
+    - Icons
+      - Separate into cathegories / folders #idea
+        - https://i.imgur.com/Z5MCu5w.png
+        - For example, the folders:
+          - icons\Blocks
+          - icons\Items
+        - could show up in the list as the categories:
+          - Default
+          - Custom (assuming there are icons in the base icons folder)
+          - Custom\Blocks
+          - Custom\Items
+      - Add more icons #idea
+        - https://mega.nz/#F!1r5S1azS!yOJOoH9kvmXT9v_J3waWXw
+        - Inspect all of it, see what can be used
+        - Instance block icons
+        - Replace the ugly old textures with something better.
+          - NOT mojang assets!
+    - Instance features
+      - Instance window - edit/console
+        - Add an option to open the instance window/tab when 'new instance' is used. #idea
+          - Or just do it by default?
+        - Add option to use Account skin/face for instance console window #idea
+          - https://github.com/MultiMC/MultiMC5/issues/1524
+          - Should help with identifying what account runs where
+      - Share instances
+        - https://github.com/MultiMC/MultiMC5/issues/1070
+        - Possibly write an article on how to set up sharing using:
+          - rsync
+          - dropbox
+          - git
+          - other?
+        - Second level:
+          - Actually integrate sharing into MultiMC
+      - Add creation of system shortcuts to launch instances #idea
+        - https://github.com/MultiMC/MultiMC5/issues/2018
+        - https://github.com/MultiMC/MultiMC5/issues/253
+        - Previous feature, mostly done in current MMC - it's possible to launch directly now
+        - Requires the actual shortcut creation
+      - Loading
+        - Implement instance replacement on the fly #idea
+          - placeholder is swapped out for the real deal with the same ID
+          - Use 'install in progress' instance for instance creation #idea
+          - Port instance creation from zip pack #idea
+            - Create 'install in progress' instance
+            - Run the install in the background
+            - Swap out the instance for a new one
+        - Instances outside the instances folder #idea
+          - https://github.com/MultiMC/MultiMC5/issues/263
+          - We can't use symlinks on windows...
+            - Store a .lnk file instead of the actual folder
+            - Resolve .lnk files
+            - Use symlinks on linux and OSX
+          - UI:
+            - Add a 'move' instance command that lets you select a location where the instance folder should move
+            - Add 'move back'
+      - Instance view
+        - Custom sort order #idea 
+          - https://github.com/MultiMC/MultiMC5/issues/2153
+          - Sort manually with drag & drop
+        - Rename instance folders when renaming instances in the instance view #usability #idea
+          - https://github.com/MultiMC/MultiMC5/issues/176
+          - https://github.com/MultiMC/MultiMC5/issues/336
+          - https://github.com/MultiMC/MultiMC5/issues/336
+          - Will have to deal with instance ID change...
+            - Maybe generate instance IDs separate from folder names?
+            - Will have to deal with upgrades - changing from folder name ID to UUID
+        - Improve instance tooltips #usability #idea
+          - https://github.com/MultiMC/MultiMC5/issues/1081
+        - As an alternative, add a plain list view (tree view?) #usability #idea
+          - https://github.com/MultiMC/MultiMC5/issues/108
+        - Groups
+          - Assign to groups using drag&drop
+            - https://github.com/MultiMC/MultiMC5/issues/2153
+            - Just like in MMC4
+          - Add support for renaming groups #idea
+          - Groups can expand/contract in weird ways #bug #usability
+            - https://www.youtube.com/watch?v=5yI_eWlnsrc
+            - Fix it
+          - Remember group expanded/contracted state across runs #usability #idea
+            - https://github.com/MultiMC/MultiMC5/issues/851
+            - https://github.com/MultiMC/MultiMC5/issues/2043
+            - Somehow put it in the window geometry data we already save?
+            - Add a way to expand all
+        - Allow selecting multiple instances #usability #idea
+          - Good for:
+            - mass delete
+            - mass group change
+        - [x] Right click location + context menu should specify the group to create the instance in #usability
+          - https://github.com/MultiMC/MultiMC5/issues/1404
+      - Instance templates and default personal settings
+        - https://github.com/MultiMC/MultiMC5/issues/413
+        - https://github.com/MultiMC/MultiMC5/issues/1437
+        - https://github.com/MultiMC/MultiMC5/issues/1667
+        - When creating a new instance you often have to adjust some settings, like keybindings, GUI size etc.
+        - Provide the user with a way to apply:
+          - default settings on instance creation
+          - any settings template on command
+        - Templates
+          - Created similarly to instance exports
+          - Stored locally in 'templates'? Maybe?
+            - Or a db.
+          - Applicable to existing instances, overriding any of the insides.
+        - Isn't such a template a form of modpack?
+      - Instance cleanup
+        - https://docs.google.com/document/d/1eitnu3tFPoaOLz0S2rH8eiE3XaLw5mWqSEQG2UIuUB4/edit?usp=sharing
+        - The Ideas
+          - A rule is a function of the instance folder that returns the files and folders which should be selected.
+          - Internally, it can be a list of expressions that select individual items (existing prefix tree impl.)
+          - Advanced rules will eventually allow wildcards and regexp selection. This isn’t necessary for a basic impl.
+        - The steps
+          - [x] Start simple
+            - https://github.com/MultiMC/MultiMC5/issues/926
+            - [x] Implement the basic rule set types (abstract + implicit)
+            - [x] Only do implicit rule sets, no user rule sets
+            - [x] Other logs already recognize logs... -> make that a rule set instead
+            - [x] UI:
+              - [x] Put cleaning shortcuts in places
+                - [x] definitely other logs
+                - [x] maybe instance export?
+          - Ad-hoc interactive cleaning
+            - Implement wildcard rule
+            - Allow population of prefix trees from rules/rule sets
+            - Add page dedicated to instance cleanup, visible when the instance isn’t running:
+              - Show tree view of the instance
+              - Show rules on right (rule set)
+              - Clicking in tree adds or removes rules (they break down to simpler rules if they are ‘advanced’)???
+              - Adding rules affects the tree
+          - Rule saving and overrides
+            - Allow saving ad-hoc rule sets as user rules
+            - User rules can override implicit rules
+    - Time tracking
+      - https://github.com/MultiMC/MultiMC5/issues/1278
+      - Track and show time spent in current Minecraft session while the instance runs
+        - Show it somewhere
+      - Track time spent in game during the current MultiMC run / last 24 hours
+      - Track play time for longer periods (some sort of graph view?)
+      - Add a way to set time limits on play time
+        - https://github.com/MultiMC/MultiMC5/issues/1279
+        - This would have to be self-imposed limits most likely
+        - Integration with external DBs? LDAP? something?
+    - Themes #idea #themes
+      - Currently prototypes...
+        - https://github.com/MultiMC/MultiMC5/issues/378
+      - Changing themes between bring, dark and system randomly ends up with broken 3d elements #bug
+        - Fixed by restart
+      - Make selection of themes friendlier #idea
+        - Right now, it's buried in some dialog and not very visual
+      - Themes should come as packages and be placed in a `themes` folder to install them #idea
+        - Archive format
+          - zip
+            - would have to be integrated with the Qt resource system
+            - easier for users - zip tools are common and abundant
+          - rcc
+            - already integrated
+            - tools for working with them would have to be forked/adapted/bundled
+        - Content format
+          - Themes can contain multiple parts:
+            - Widget theme
+              - Qt theme + color palette (json)
+              - CSS + resources for CSS
+            - Icon theme
+              - https://github.com/MultiMC/MultiMC5/issues/812
+            - It should be possible to mix and match these from different theme packages
+        - Multiple locations
+          - Builtin (stored with launcher files and autoupdated along with it)
+          - User (stored with data)
+        - Theme override
+          - Builtin themes can be changed?
+          - You can revert back to builtin state
+          - Theme cloning, should be possible
+    - Add Edit menu on OSX to allow emoji input
+      - does Qt even support OSX emoji???
+    - Add an option to close MultiMC entirely on launch
+      - https://github.com/MultiMC/MultiMC5/issues/650
+      - Use the launch agent! #launch-agent
+    - Logging
+      - Add a way to upload MultiMC log to paste.ee from inside MultiMC
+        - censor it just like Minecraft logs
+      - Customizable console colors #usability
+        - https://github.com/MultiMC/MultiMC5/issues/751
+      - Other logs should use the console settings (colors, font, etc)
+        - https://github.com/MultiMC/MultiMC5/issues/604
+      - Add a search function to other logs
+        - Search in current?
+        - Search in everything?
+      - Add more ways to upload logs (support more pastebin sites) #idea
+        - https://github.com/MultiMC/MultiMC5/issues/1840
+    - IO, Network and Task system improvements
+      - Use Mozilla CA root cert data instead of trusting the system #idea #security 
+        - https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt
+        - Fixes possible issues when there is something messing with local certs
+        - Fixes issues with Apple being crazy
+      - Make all filesystem operations into error checked, 'async-friendly' tasks
+        - https://github.com/MultiMC/MultiMC5/issues/89
+      - Make number of parallel downloads tweakable in settings (1-6) #idea
+      - Add a timeout to downloads - if nothing moves in X amount of time, fail #idea
+        - Maybe the timeout could be also tweakable
+      - Make progress bars use the real numbers, not 1..100 #idea
+        - [x] Allow manually cancelling downloads
+          - See: https://github.com/MultiMC/MultiMC5/issues/352
+          - Partial
+      - Asynchronous downloads and download management
+        - https://github.com/MultiMC/MultiMC5/issues/1211
+        - Track running downloads where they are relevant
+          - Global/instance/task downloads
+          - Manageable in UI (see Steam for example)
+        - Examples:
+          - Downloading a pack should not block the main window
+          - Adding components in the instance version page should not block the instance window
+          - Updates should run in the background before the user starts the instance (optional?)
+            - If updates are needed, just show some sort of progress overlay and notify user when it's done!
+      - Tasks should be cancellable
+        - See: https://github.com/MultiMC/MultiMC5/issues/352
+        - [x] Allow manually cancelling downloads
+      - Have a global task status widget
+        - https://github.com/MultiMC/MultiMC5/issues/461
+    - Hardware awareness
+      - Required for some Java and Analytics features
+      - RAM available and free #memory-statistics
+        - http://nadeausoftware.com/articles/2012/09/c_c_tip_how_get_physical_memory_size_system
+        - Windows: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366589(v=vs.85).aspx
+        - Linux: http://www.cyberciti.biz/faq/linux-system-memory-utilization/
+          - Parsing this mess seems sketchy and prone to breakage...
+        - OSX: http://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+          - host_statistics looks promising
+    - Global resource cleanup
+      - https://github.com/MultiMC/MultiMC5/issues/1242
+      - When something isn't referenced from any instance anymore, it would get removed
+      - Manual process triggered by user
+    - MultiMC should use mirrors for itself #idea
+      - https://github.com/MultiMC/MultiMC5/issues/1304
+      - Prefer https
+      - fall back to http with checksums / signatures
+    - Add UI modes? #idea
+      - Multi windows
+        - The new default
+        - Instance window is just another window
+        - Main window stays around on launch
+      - Single window
+        - Instance window is modal like before
+        - Main window is hidden when the game is launched
+      - Optimized for Steam streaming
+        - Add a close button to the UI #idea
+          - https://github.com/MultiMC/MultiMC5/issues/1349
+          - Steam streaming MultiMC makes it impossible to close because of a lack of window decorations
+        - Requires testing
+    - Better discord integration
+      - Use websockets to directly trigger desktop app using RPC #idea
+        - https://github.com/MultiMC/MultiMC5/issues/1884
+        - Currently stalled, needs reverse engineering
+  - Deployment & infra
+    - Updater
+      - Add option to update on exit with background downloads #idea #usability
+        - https://github.com/MultiMC/MultiMC5/issues/2088
+        - User selects 'update on exit'
+        - MultiMC downloads update in the background
+          - This needs background downloads and download management
+        - MultiMC updates on exit when if the update is finished
+      - Add automatic updates #idea
+        - https://github.com/MultiMC/MultiMC5/issues/440
+        - Optional, default off
+      - Rework non-stable changelog to be a model. And teach it markdown.
+        - Mark commits as built somehow
+          - Update metadata needs to know git commit hashes
+    - [x] Better linux packages without Qt #idea
+      - [x] Do not include Qt, use the system version
+      - Because of Qt ABI compatibility, this should work across the board
+      - This can be done for distros that have good enough Qt:
+        - https://docs.google.com/spreadsheets/d/1WsTGABWr5i243SdB7YMjbgzcMG8XdIbfZ5AYRP4x7t8/edit?usp=sharing
+      - Building with old enough libstdc++ and Qt will make the set of viable distros bigger
+    - Systemwide installers/packages #idea #usability
+      - https://github.com/MultiMC/MultiMC5/issues/1974
+      - Keep the portable versions, make it clear what is what.
+      - OSX
+        - Second .app
+        - Store MultiMC config in:
+        - http://stackoverflow.com/questions/410013/where-do-osx-applications-typically-store-user-configuration-data
+      - Linux
+        - Packages similar to Ubuntu, relying on the system Qt
+          - Will require a new kind of linux build of the binaries and many repositories
+          - We need to build for older Qt because of this! See: #linux-packages
+      - Windows
+        - Provide a .msi installer
+          - Install to 'program files'
+          - Store configuration in home
+      - Provide an upgrade path from existing portable versions (import of data)
+  - Share resources between instances
+    - Use vfs?
+    - Use symlinks
+      - https://github.com/MultiMC/MultiMC5/issues/42
+    - Share server.dat
+      - https://github.com/MultiMC/MultiMC5/issues/681
+    - Could start just as a way to properly copy folders
+      - If symlinks are encountered, ask for elevated rights
+    - needs to handle permissions too, and use UAC on Windows when necessary
+      - https://msdn.microsoft.com/en-us/library/windows/desktop/aa446619%28v=vs.85%29.aspx
+      - See: http://superuser.com/a/148107
+      - http://farmanager.com/opensource.php?l=en
+      - flink.(cpp,h}
+      - elevate.h - ???
+    - https://github.com/MultiMC/MultiMC5/issues/2052
+  - Java
+    - Store 32bit and 64bit java memory settings separately #idea
+      - Use case
+        - 2 computers
+          - 32bit windows
+          - 64bit windows
+        - MMC on a flash drive
+        - MMC remembers the settings separately, not requiring tweaking of the memory sizes
+    - Java detection after an offline update from 8u40 to 8u45 doesn't work??? #bug
+      - https://github.com/MultiMC/MultiMC5/issues/1025
+    - Intel GPUs fail to work with Java > 8u55 on Windows 10 #terrible #bug #external
+      - Limited to HD2000, HD3000 GPUs
+      - Reason:
+        - https://github.com/LWJGL/lwjgl/issues/119#issuecomment-173983180
+        - Java added 'supportedOS' Windows 10 to its manifest:
+          - http://hg.openjdk.java.net/jdk8u/jdk8u60/jdk/file/935758609767/src/windows/resource/java.manifest#l56
+        - Driver checks reported Windows version and now it's '10.0', which it doesn't recognize
+          - Has been verified by decompiling Intel driver
+        - Driver doesn't load OpenGL lib because of it
+      - Workaround:
+        - Detect the hardware/software combination
+        - Redistribute Java 8u55 if the hardware and OS matches the criteria
+      - Solution:
+        - Have alternative Java binary that starts Java usning JNI and doesn't declare Windows 10 compatibility
+      - http://paste.ee/p/0t7Qb
+      - https://github.com/LWJGL/lwjgl/issues/119
+      - https://github.com/MultiMC/MultiMC5/issues/1276
+    - Tell people when they use some horrible old version #usability 
+      - https://github.com/MultiMC/MultiMC5/issues/608
+    - Disabling java args override clears the per-instance args field #usability 
+    - More java detection
+      - Relative folders inside MultiMC
+        - java/$version/bin/java{,w.exe}
+      - [x] Linux:
+        - /usr/lib/jvm/$whatever/jre/bin/java
+      - Windows
+        - C:\ProgramData\Oracle\Java\javapath\java
+      - OSX
+        - https://github.com/MultiMC/MultiMC5/issues/391
+        - /usr/libexec/java_home
+          - when passed the argument -V shows a verbose list of all installed java versions.
+          - The current JAVA_HOME is written to stdout
+          - the full list is written to stderr in this format:
+            - https://gist.github.com/max96at/38bb0994682d9f3ed5cb
+              | Matching Java Virtual Machines (4):
+              |     1.8.0, x86_64:	"Java SE 8"	/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home
+              |     1.7.0_65, x86_64:	"Java SE 7"	/Library/Java/JavaVirtualMachines/jdk1.7.0_65.jdk/Contents/Home
+              |     1.6.0_65-b14-462, x86_64:	"Java SE 6"	/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+              |     1.6.0_65-b14-462, i386:	"Java SE 6"	/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+    - Java args
+      - Automatically adjust java args based on the memory available/free #usability 
+        - See: #memory-statistics
+        - Needs more heuristics for low memory situations...
+      - Java args optimization #java_opt 
+        - Newer
+          - https://www.reddit.com/r/feedthebeast/comments/5h0blu/best_java_arguments_for_minecraft_1102/
+        - -Xmx4g -Xms4g
+          - Aim for 4GB - it appears to be the sweet spot for most packs/instances.
+          - Setting the min and max heap the same helps startup - java doesn't have to resize the heap at any point.
+          - if you have -Xms smaller, it sets a goal for the heap size for GC which is smaller than the max. This means it will add in additional full gc cycles to try and achieve that goal.
+        - -Xmn2G
+          - nursery gen is 2g, it will always BE 2g
+          - because -XX:-UseAdaptiveSizePolicy stops the GC algos from resizing it
+          - ``Young generation represents all the objects which have a short life of time. Young generation objects are in a specific location into the heap, where the garbage collector will pass often. All new objects are created into the young generation region (called "eden"). When an object survive is still "alive" after more than 2-3 gc cleaning, then it will be swap has an "old generation" : they are "survivor".''
+        - -XX:+UseConcMarkSweepGC
+          - Gc slows down everything, you'll get giant pauses while it runs
+          - Concurrent mark sweep is by far the best GC algorithm if you have a multicore machine
+        - -XX:CMSInitiatingOccupancyFraction=60
+          - By default CMS GC uses set of heuristic rules to trigger garbage collection. This makes GC less predictable and usually tends to delay collection until old generation is almost occupied. Initiating it in advance allows to complete collection before old generation is full and thus avoid Full GC (i.e. stop-the-world pause). 
+          - CMSInitiatingOccupancyFraction=60 will start GC before the old generation can fill up (at 60% full), preventing 'stop the world' GC lag. The game can continue running.
+          - The reason it's probably lower than most would expect is that MC generates a fair amount of garbage and if the new gen GC can't find space to put the things in the old gen, then the system will switch to 'stop the world' full GCs - which will cause giant pauses.
+          - The default is 90, which is way too high
+        - -XX:-UseAdaptiveSizePolicy
+          - adaptivesizepolicy OFF helps a lot too, otherwise what can happen is the nursery gets shrunk, which is NOT helpful
+      - Optimize while profilers are running
+        - -Dsun.rmi.dgc.server.gcInterval=2147483646
+          - stupid workaround if you connect things like jvisualvm to your jvm
+          - jvisualvm starts up RMI, which starts up a harvester thread for RMI objects
+          - which triggers a full GC every minute
+          - this sets it to int.maxvalue instead ;)
+      - Some things to consider
+        - http://www.ateam-oracle.com/java-tuning-in-a-nutshell-part-1/
+    - Add a way to dump all thread stack traces
+      - https://github.com/MultiMC/MultiMC5/issues/1035
+      - Implement in launcher part
+  - Packs
+    - Import
+      - Separate Import from New instance #usability
+        - https://github.com/MultiMC/MultiMC5/issues/1436
+        - It should be a separate button/dialog
+      - By pasting the URL into the main window (CTRL+V)
+      - By pasting the zip file into the main window (CTRL+V)
+      - By pasting a folder to the main window
+      - By dragging the URL from a browser into the main window
+      - By dragging a zip file to the main window
+      - By dragging a folder to the main window
+    - Export
+      - Export packs by dragging an instance out of the main window #idea
+      - Expand the .packignore file handling #idea
+        - https://github.com/MultiMC/MultiMC5/issues/1043
+        - Add global and maybe internal default packignore to control every pack export automatically
+        - Ignore by default:
+          - logs/
+          - hs_.log
+          - core.
+          - core
+          - .git/
+          - various desktip metadata files and folders
+          - etc.
+        - Add wildcard support
+          - This is hard because there's a tree with checkbox GUI on top of .packignore
+          - Add wildcard support in global packignore?
+      - Export to free file hosts #idea
+        - See: http://z-o-o-m.eu/
+          - (address left out)
+          - Do something similar?
+    - Modpack import
+      - Allow allowing self signed SSL certs while downloading modpacks
+      - Add support for HTTP auth
+    - Modpack Testing Automation
+      - https://github.com/MultiMC/MultiMC5/issues/533
+      - Run client in no-gui
+      - Run server
+      - Make sure they still launch automatically
+    - MultiMC packs - the HTTP server way
+      - https://github.com/MultiMC/MultiMC5/issues/916
+      - Use the same wonko repository structure
+        - List index -> Version list -> Version
+        - Except instead of package type 'minecraft-mod' it would be 'multimc-pack-simple' ... or whatever
+        - Allow importing of every level of this structure!
+          - We started with 'version' - and only one kind - the dumb zip packs
+          - Continue with version list
+          - Add list index after that
+          - Import should recognize what is being imported and do the right thing
+      - List index
+        - Packs could be indexed somewhere, to make pack discovery easy
+      - Version list
+        - Name
+        - Description
+        - Author
+        - Icon/imagery
+        - Versions:
+          - Each version just point to dumb zip packs until #wonko is completely ready
+          - Could use #wonko versions when that's ready
+          - Keep the possibilities open
+      - Wonko-based version
+        - Once #wonko can support the internals of packs fully
+    - MultiMC packs - the git way
+      - https://github.com/MultiMC/MultiMC5/issues/1147
+      - Similar to HTTP, but the version list is backed by git instead
+      - With introduction of #wonko, less binary stuff needs to be inside the git repository
+    - AT launcher integration @RyanTheAllmighty
+      - Doing this from scratch would be quite a bit of work.
+      - Should be nice and super easy to use.
+      - Inspect the file formats on AT side
+        - How is forge handled?
+        - See if we both can benefit from wonko and version patch stacking.
+      - AT -> MultiMC import
+        - Poke @heph  about AT launcher integration
+        - https://github.com/MultiMC/MultiMC5/issues/405
+      - MultiMC -> AT export
+        - ??? #todo
+    - MCUpdater integration
+      - See https://madoka.brage.info/getting-started.html
+    - Import from Vanilla
+      - It would be necessary to untangle the multiple profile mess somehow. Or instruct the user about limitations of import.
+    - Import from Technic platform
+      - API
+        - Search for packs.
+          - https://api.technicpack.net/search?build=MultiMC5&q=stuff
+          - Result
+            | {
+            |   "modpacks": [
+            |     {
+            |       "id": "628901",
+            |       "name": "Spawn Stuff!",
+            |       "slug": "spawn-stuff",
+            |       "url": "http://www.technicpack.net/modpack/spawn-stuff.628901"
+            |     },
+          - slug goes in URL:
+            - http://api.technicpack.net/modpack/spawn-stuff/?build=MultiMC5
+        - Get pack info
+          - https://api.technicpack.net/modpack/the-heroes-mod/?build=MultiMC5
+        - Rest is solder.
+          - https://github.com/MultiMC/MultiMC5/issues/469
+          - recycle existing code
+      - Solder
+        - Get list of packs
+          - https://solder.technicpack.net/api/modpack
+      - Be nice
+        - On download, bump into the 'download counter endpoint'
+        - On launch, bump into the 'launch counter endpoint'
+          - As long as the pack has not been messed with
+      - https://github.com/TechnicPack/TechnicSolder/issues/617
+        - Solder API is changing???
+        - Maybe we can't reuse after all...
+      - Add service status icons for Technic/Solder, like we have for Mojang
+        - https://github.com/MultiMC/MultiMC5/issues/844
+        - https://twitter.com/Gen_Page/status/581357926079537152
+    - Export to Technic platform
+      - No idea how
+    - Import from FTB
+      - https://github.com/MultiMC/MultiMC5/issues/1309
+      - recycle FTB tracking
+      - Implement instance local libraries
+        - to avoid issues with tracking random untracked libraries imported to the main library folder
+    - Import from FTB platform
+      - https://gist.github.com/peterix/75d4fa2809f8c0efbbc1
+      - https://github.com/MultiMC/MultiMC5/issues/1309
+      - recycle code by @robotbrain
+        - https://github.com/MultiMC/MultiMC5/commit/378b2d2a03e5b1550489ab2128d3c19a70e0959f
+    - Switch Curse import to Nicky's new API #idea 
+      | curl -X POST \
+      |   'https://cursemeta.nikky.moe/api/modpack?p=id&p=downloadurl&p=addon.id&p=addon.name&p=addon.categorysection.name&p=addon.categorysection.packagetype&p=addon.categorysection.path' \
+      |   -H 'content-type: application/json' \
+      |   -d @manifest.json
+      - Send the whole manifest in a POST
+      - Receive... something?
+      - Process it
+  - Package management
+    - Merge the basic implementation #pull-request #tag
+      - https://github.com/MultiMC/MultiMC5/pull/1323
+    - Allow mods to include their own tabs for tracking more content in folders (for example shaders)
+      - https://github.com/MultiMC/MultiMC5/issues/252
+        | Please add a Tab for easily installing Shaderpacks
+        | They use a Sub folder in the Minecraft Profile (.minecraft/shaderpacks) and ship as .zip files or folders.
+        | http://www.minecraftforum.net/topic/940974-172sonic-ethers-unbelievable-shaders-and-glsl-shaders-mod/
+      - Alternatively, allow users to add their own tabs and folders to track...
+    - Add FML libs to legacy versions
+      - https://github.com/MultiMC/MultiMC5/issues/872
+      - Because the autodownloaders are now broken
+    - If a wonko file cannot be parsed, redownload it
+      - https://github.com/MultiMC/MultiMC5/issues/865
+    - Implement simple dependency checking
+      - https://github.com/MultiMC/MultiMC5/issues/868
+      - Filter version lists using the altready installed packages
+      - Report missing dependencies (Minecraft needs LWJGL, etc.)
+    - Index all mod files in instances #mod-indexing
+      - Maintain a mapping between mod SHA256 checksums and metadata
+        - What wonko package is it?
+        - Where it came from? (where can updates be grabbed?)
+        - This lets us provide people with an upgrade path for old instances that didn't use package management for mods
+      - Source mods for installation from all instances
+    - Check for duplicates using hashes and metadata #mod-dupes
+      - https://github.com/MultiMC/MultiMC5/issues/1218
+      - A duplicate is also a different version of the same thing-> Can be solved with metadata
+    - Add support for meta-versions:
+      - `Latest snapshot`
+      - `Latest release`
+      - etc.
+      - For example:
+        - version of stable MultiMC is `latest release`
+        - version of develop MultiMC is `latest development build`
+        - Minecraft, Java, etc.
+    - Reuse existing update logic for updating packages. It has transactions.
+    - Component structure based hashes
+      - Same component description will have the same hash, always. Could be used as an UUID, if the has is big enough.
+- 
+```
