@@ -25,10 +25,14 @@ around all of it. What is decided, what is proven, and what is still open.
 - **Proven in a proof of concept:** `ThemeTest/` (next to the Launcher checkout; built with
   `hopper/launcher/run-build.py win32 ThemeTest <output dir>`). Verified on Windows 11 on
   2026-11-07, see [ThemeTest](#themetest). Not tested on Windows 10 (no machine).
-- **Next:** following the system on Linux (the desktop portal); then port ThemeTest's parts
-  into the Launcher.
+- **Ported into the Launcher** (2026-11-07): #5686 (a25e3bc4), title bars (9d18ee2b), then
+  the rest in one change: the system's dark mode and accent on all three platforms, the
+  System and Native themes, the accent setting, the Linux whitelist, Fusion as the macOS
+  default, custom themes as palettes, and new theme settings with a selector (see
+  [In the Launcher](#in-the-launcher)).
+- **Next:** testing on real machines; icons (see [Ideas](#ideas)).
 
-## The current theme system
+## The theme system before the overhaul
 
 `launcher/ui/themes/`: each theme is an `ITheme` with a Qt style name (`qtTheme()`), an
 optional palette and an optional stylesheet. `ITheme::apply` sets the style, then the palette,
@@ -191,6 +195,9 @@ XP):
     yellowish next to Windows.
   - macOS: AppKit's semantic colours (`windowBackgroundColor`, `controlBackgroundColor`,
     `textColor`, `alternatingContentBackgroundColors`) resolved in the current appearance.
+    Dark mode's alternate row is white at 5% opacity, drawn over the list: it's mixed over
+    the field colour, since a palette colour is drawn opaque (it came out solid white in the
+    Launcher's first run, 2026-11-07).
   - Linux (Fusion): the portal has no colours, so our Bright or Dark; KDE-like desktops get
     their real colours through Native.
 - **Accent, for every theme:** the theme's own, the system's (followed live), or a custom one
@@ -306,21 +313,89 @@ A style of our own means subclassing `QCommonStyle` (or `QProxyStyle` over Fusio
 every control. Big, but well bounded, and independent of the rest: with Fusion as the default
 everywhere, it can replace Fusion later without changing anything else.
 
-## Porting to the Launcher
+## In the Launcher
 
-Roughly in this order, each a release of its own:
+Ported from ThemeTest, in this order: the #5686 fix, title bars, then everything else in
+one change.
 
-1. The #5686 fix (`QPixmapCache::clear()` in `ITheme::apply`).
-2. `TitleBar` (Windows, then macOS) and the title bar event filter; the title bar style per
-   theme.
-3. `SystemTheme` (Windows first) and a System theme that follows it; the current System theme
-   becomes "Native" where it is kept.
-4. The accent setting (theme's own, system, custom) in the settings.
-5. Icon themes following the palette's brightness (a light and a dark variant per set).
-6. The Linux whitelist; Fusion as the macOS default.
-7. Custom themes as palettes on the default style.
+- **Settings** (new; the old `ApplicationTheme` isn't read any more: its System meant the
+  platform's style):
+  - `Theme`: `system`, `bright`, `dark` or `custom`. Empty until chosen, and the setup
+    wizard asks until then, existing installs too. Meanwhile System where the system can be
+    followed, else Bright.
+  - `ThemeStyle`: `fusion` or `native`. Empty is the platform's default: Native on Breeze
+    and Kvantum, Fusion elsewhere.
+  - `AccentSource`: `theme`, `system` or `custom`. Empty is the system's where there is one.
+  - `AccentColor`: the custom accent, `#0078d4` until picked.
+- **Code** (`launcher/ui/themes/`): `ThemeManager` (ThemeTest's `Themes`) owns the themes,
+  reads and writes the settings, applies them, and re-applies when the system changes.
+  `SystemAppearance` is ThemeTest's `SystemTheme` (that name was taken by the theme class).
+  `ITheme` is a palette (every role set), an optional accent, stylesheet and search paths,
+  and a title bar style; `ThemeManager` adds the accent and the disabled colours.
+- **The selectors** (`ThemeSelectionWidget`, `IconThemeSelectionWidget`, cards from
+  `SelectionCard`), on a new Appearance settings page and as a setup wizard step, where
+  choices apply at once (in the settings too: the dialog has only Close). Themes: a card per
+  theme, a small window painted in its colours; the accent (the theme's own, the system's,
+  custom); Fusion or Native where Native is offered. What the style
+  can't take is disabled with a tooltip saying why. Icons: a card per set with six of its
+  icons, Custom only where `iconthemes/custom` exists.
+- **The custom accent** is picked in a dialog of our own (`AccentColorDialog`,
+  [#5798](https://github.com/MultiMC/Launcher/issues/5798)): suggested colours with the
+  system's accent first, a saturation and brightness field with a hue strip, hex, and a
+  preview of the chosen theme with the colour. Not `QColorDialog`: on macOS its native panel
+  opens in a corner of the screen, picking from the screen goes through permission prompts,
+  and our own needs no more of Qt's translations.
+- **Custom themes:** `theme.json`'s colours over Dark's, every role derived from them.
+  `widgets` (the widget style), `fadeColor` and `fadeAmount` are ignored: the style comes
+  from the settings, disabled colours from the rule. Offered only when customized: older
+  versions wrote the Dark theme of the time and its tooltip stylesheet there on every start,
+  and files like those don't count. Nothing is written there any more. An editor for it
+  would make it worth offering to everyone (later). The Dark theme's tooltip stylesheet is
+  now its palette.
+- **Breeze with our palettes:** Breeze draws tool bars in the KDE colour scheme's Header
+  colours, read from the scheme file, not the palette: Bright on a dark KDE had white tool bar
+  text. Like KDE applications with their own colour scheme (KColorSchemeManager), the palette
+  is written as a scheme (`cache/breeze.colors`) and the application's
+  `KDE_COLOR_SCHEME_PATH` property points to it; cleared for System and Fusion. Our palettes
+  also go on the widget classes the platform theme gives palettes of their own.
+- **Linux:** links QtDBus (the lin32 and lin64 gate expectations list `libQt5DBus.so.5`).
 
-Parts marked in ThemeTest's comments go away with a newer Qt.
+Parts marked in the code's comments go away with a newer Qt.
+
+## Custom themes: what others did
+
+Custom themes are only offered when customized now, and were limited before (one folder,
+`themes/custom`). Before designing them again, what a fork did. Prism Launcher (GPL-3) was
+looked at through its user documentation and its theme repository only, not its code: formats
+and behaviour (2026-11-07).
+
+- **The format is ours, extended.** Community themes are `themes/<name>/theme.json` with our
+  keys (`name`, `widgets`, always "Fusion", `colors` with the 13 roles and `fadeAmount`,
+  `fadeColor`), plus:
+  - `logColors`: colours per log level (Launcher, Message, Debug, Warning, Error, Fatal,
+    FatalHighlight);
+  - `qssFilePath`: the stylesheet's name, `themeStyle.css` by default.
+
+  Next to them, `themeStyle.css` (mostly a few lines; some themes restyle everything in
+  18 KB) and `resources/`.
+- **Any number of themes** (every folder in `themes/`), and icon themes the same way
+  (`iconthemes/<name>/index.theme`). Colour theme, icons and the cat are three separate
+  choices. The cat is a "cat pack": one image, or a folder with `catpack.json`, a default
+  image and variants shown between given dates.
+- **Sharing by hand:** a community repository (about 40 themes and 5 icon sets, zips on
+  GitHub releases, licensed per file). Users unzip into the folder and restart. No import, no
+  editor, no browsing in the launcher. The repository calls itself for Prism "and other
+  compatible launchers": these themes nearly work in MultiMC today.
+
+What it means for ours:
+- Keep reading the same `theme.json` (accept `qssFilePath`; `widgets` and the fade keys are
+  ignored already), and list every folder in `themes/`: the existing community themes work.
+- Accept `logColors`, through `Colors::readable` against the log's background.
+- Do better where they stop: import a zip from the launcher (button, drag and drop), no
+  restart, previews on the cards, and an editor ("Customize…" from any theme), as the old
+  idea list (`Ideas2015.md`, Ideas → Themes) had it: built-in and user themes, cloning.
+- Which themes are offered: every folder in `themes/`, except an old untouched default
+  (`CustomTheme`'s check).
 
 ## Findings to fix
 
@@ -336,6 +411,10 @@ Found while testing ThemeTest, recorded first, fixed later.
   (decided 2026-11-07): revisit if Mac users complain.
 
 ## Ideas
+
+
+- Icons that follow the palette's brightness. Only Simple has a pair (dark and light icons);
+  a dark theme can still get dark icons (#5665). Colored is the default and works on both.
 
 - A contrast setting (a slider) for log colours: `Colors::readable` already takes the target.
 - A title bar colour in custom themes' `theme.json`, for themes whose stylesheet paints window
