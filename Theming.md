@@ -30,7 +30,8 @@ around all of it. What is decided, what is proven, and what is still open.
   System and Native themes, the accent setting, the Linux whitelist, Fusion as the macOS
   default, custom themes as palettes, and new theme settings with a selector (see
   [In the Launcher](#in-the-launcher)).
-- **Next:** testing on real machines; icons (see [Ideas](#ideas)).
+- **Next:** custom themes as packages (see [Custom themes](#custom-themes)); icons (see
+  [Ideas](#ideas)).
 
 ## The theme system before the overhaul
 
@@ -396,6 +397,102 @@ What it means for ours:
   idea list (`Ideas2015.md`, Ideas → Themes) had it: built-in and user themes, cloning.
 - Which themes are offered: every folder in `themes/`, except an old untouched default
   (`CustomTheme`'s check).
+
+## Custom themes
+
+The design (2026-11-07), from the old idea list (`Ideas2015.md`, Ideas → Themes), #3873 and
+what Prism did ([above](#custom-themes-what-others-did)). In phases, each a release.
+
+### What a theme is
+
+A folder: `theme.json`, an optional stylesheet, optional `resources/`. The folder name is the
+theme's id. Two kinds of theme, chosen separately, as now:
+
+- **Colour themes** in `themes/<id>/`.
+- **Icon themes** in `iconthemes/<id>/` (freedesktop `index.theme` and `scalable/`, as now
+  and as Prism's).
+
+The widget style (Fusion or Native) and the accent stay settings of their own: a theme
+doesn't choose them.
+
+### `theme.json`
+
+The format we and Prism already read, so existing themes keep working:
+
+```json
+{
+    "name": "Purple",
+    "colors": { "Window": "#392252", "WindowText": "#ffffff", "Base": "#291242", "...": "..." },
+    "logColors": { "Error": "#ff6060", "Warning": "#ffb000" },
+    "qssFilePath": "themeStyle.css"
+}
+```
+
+- `name`: required.
+- `colors`: the 13 palette roles (Window, WindowText, Base, AlternateBase, ToolTipBase,
+  ToolTipText, Text, Button, ButtonText, BrightText, Link, Highlight, HighlightedText), any
+  of them. Missing ones come from Bright or Dark, whichever is closer to the theme's Window
+  (now always Dark, which gives a bright theme dark tool tips). The shading roles come from
+  Button and Window, disabled colours from the rule, as now.
+- `logColors`: optional, by level (Launcher, Message, Debug, Warning, Error, Fatal,
+  FatalHighlight), each through `Colors::readable` against the log's background, like ours.
+- `qssFilePath`: optional, the stylesheet, `themeStyle.css` by default. `theme:` paths in it
+  resolve to `resources/` (`QDir::setSearchPaths`, as now). Main window widgets have object
+  names to select (#3444).
+- Ignored, with a note in the log: `widgets`, `fadeColor`, `fadeAmount`.
+- Not added: a version number (the format only grows optional keys), authors and licenses
+  (Prism's repository keeps those in files next to the theme; we can show a README later).
+
+### Built-in and user themes
+
+- **Built-in:** System, Bright and Dark, in code (System follows the system; Bright and Dark
+  are the bases above). Always there, updated with the Launcher, never editable (decided
+  2026-11-07; not `theme.json` files in the resources: nothing gained by making them
+  editable, and they must always be available). Customizing one writes its colours out as a
+  new user theme's `theme.json`.
+- **User:** every folder in `themes/` with a valid `theme.json`, listed after the built-ins.
+  An untouched default left by older versions (`themes/custom`, see `CustomTheme`) isn't
+  listed. Broken ones are left out and logged, and the Appearance page says how many.
+- The list is read again when the Appearance page opens and after an import: no restart.
+- Ids are folder names; the setting stores the id. A theme that is gone falls back to the
+  default, as an unknown theme does now.
+
+### Getting themes in and out
+
+- **Import** (button on the Appearance page, or a zip dropped on it): a zip with a
+  `theme.json` (a colour theme) or an `index.theme` (an icon theme), at the top or in one
+  folder. Prism's zips are the second kind and import as they are.
+  - Checked before anything is written: every entry stays inside the target folder (no
+    `..`, no absolute paths; `MMCZip::extractSubDir` doesn't check this, so the import
+    does), at most 50 MB unpacked (themes can carry images; a fixed internal limit, decided
+    2026-11-07), and `theme.json` parses.
+  - Extracted to a temporary folder, then renamed into place. An existing theme with the
+    same id is replaced only after asking.
+  - The imported theme is selected, so it shows at once.
+- **Export** (on a user theme's card): its folder as a zip, the same layout import takes.
+- **Open folder** and **Delete** (to the trash where the system has one) on user themes'
+  cards.
+
+### Making one
+
+- **Customize…** on any theme's card: a copy as a user theme ("Purple (copy)"), opened in
+  the editor. Built-in themes are customized by copying, never in place (the old list's
+  "theme override" and "revert to built-in" aren't needed then).
+- **The editor:** a swatch per role (picked with `AccentColorDialog`), the log colours, and
+  the theme preview, live; Save writes `theme.json`. The stylesheet isn't edited in the
+  launcher: "Open folder" for that, and a note that it reloads when the theme is applied
+  again.
+
+### Phases
+
+1. Every folder in `themes/` and `iconthemes/`; `qssFilePath`, `logColors`, and the better
+   base for missing colours; cards for all of them on the Appearance page (scrolling when
+   there are many). Custom icon themes stop being limited to `iconthemes/custom` (#812).
+2. Import and export, Open folder, Delete.
+3. Customize… and the editor.
+
+Later, if there's demand: a list of community themes to browse and install from the launcher
+(#3873), like meta, built from a repository of themes.
 
 ## Findings to fix
 
