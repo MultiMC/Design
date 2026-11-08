@@ -165,11 +165,29 @@ meet them, the Launcher stays on its current build and tells the user why (for e
 one machine may run several variants of a build, and a variant can supersede another, which
 moves Launchers over (see [UpdaterFormats.md](UpdaterFormats.md), Variants).
 
-Idea (2026-11-06), not decided: `supersedes` moves people without asking, and that may not be
-right for every move (a Windows machine can run both the Qt 5.6 and the Qt 5.15 build, and
-some people will want one or the other). Moving could instead be optional and visible: when a
-machine can run several variants of a build, the user chooses in the Launcher's UI. Until
-this is settled, no variant supersedes another.
+Moving between variants (decided 2026-11-08, replacing the idea of 2026-11-06 that moves
+might be optional): `supersedes` is the default, and users can opt out of it.
+
+- **Moving is the default.** When a build has a successor of the installed variant that
+  runs on the machine, the Launcher moves to it, but asks first. With a newer build, the
+  update dialog has a ticked "Switch to <new>" checkbox; on the installed build (a successor
+  added later), the Launcher offers the switch on its own, with "Switch now", "Keep <old>"
+  and "Ask me later".
+- **Staying.** Unticking the checkbox, or "Keep <old>", records the old variant in the
+  Launcher's settings, and updates stay on it from then on.
+- **The settings** (Updates page) list the variants of the tier's build that run on the
+  machine, with the recommended one (where `supersedes` leads) first. Choosing another
+  variant switches to it right away, on the installed build if needed. That is also how a
+  user goes back to an older variant, as long as builds still have it.
+- **Stranded variants.** When builds no longer have the variant a user stays on, the
+  Launcher says so, even if they turned the move down before: the update dialog explains the
+  move instead of offering to stay. If no variant runs on the machine any more, an automatic
+  check says so once per build.
+- **Names.** Variants have a `name` in the build manifest for this UI (UpdaterFormats.md,
+  Variants); the Launcher never derives anything from variant IDs.
+
+The first move is the Qt 5.6 Windows build to the Qt 5.15 one: `windows-x86-qt5.15`
+supersedes `windows-x86-qt5.6`, so Windows 7 and newer move, and XP and Vista stay.
 
 ### Relative URLs in the manifests
 

@@ -9,10 +9,14 @@ Decided 2026-11-01. This is format 1.
 
 ## Principles
 
-- **Strict on purpose.** A reader refuses anything it doesn't fully understand: an unknown
-  field, a missing field, a wrong type, a `format` other than 1, a value outside its
-  allowed range. Nothing is skipped or guessed. A new field or a looser rule means a new
-  format version.
+- **Strict on what is there, open to additions** (changed 2026-11-08). A reader refuses a
+  missing field, a wrong type, a `format` other than 1, a value outside its allowed range.
+  Fields it doesn't know are ignored, at any level, so fields can be added to format 1
+  without stranding the Launchers already out there. An addition old readers must not
+  ignore, or any change to a field they know, means a new format version. Requirements are
+  the exception: a requirement a reader doesn't know is never ignored (see Requirements).
+  hopper's validator checks what the publisher writes, and refuses unknown fields: an
+  addition goes into the validator with the change that writes it.
 - **Signature first.** Every document is checked against its signature before it is
   parsed. Readers never parse unsigned JSON from the tree.
 - **No URLs in the documents.** Every path in the tree follows from the layout below,
@@ -94,8 +98,8 @@ These apply to every document (the manifests, the tags document, the keys docume
 mirror list).
 
 - **Encoding.** UTF-8 without a byte order mark. The whole file is one JSON object.
-- **Fields.** Every field listed for a document is required, and no other field is allowed,
-  at any level. `null` is never allowed.
+- **Fields.** Every field listed for a document is required. Readers ignore other fields
+  (see Principles); the validator refuses them. `null` is never allowed.
 - **Duplicate keys** are refused. The validator checks this before anything is signed;
   Qt's JSON parser can't detect them, so the Launcher relies on the signature for it.
 - **`type` and `format`.** Every document starts with a `type` naming what it is (`build`,
@@ -245,6 +249,7 @@ One per build, for all variants.
   "built": "2026-11-01T11:42:07Z",
   "variants": {
     "linux-x86_64-qt5": {
+      "name": "Linux, 64-bit",
       "supersedes": [],
       "requires": {
         "os": "linux",
@@ -264,6 +269,7 @@ One per build, for all variants.
       "links": []
     },
     "macos-x86_64-qt5.15": {
+      "name": "macOS, Qt 5.15",
       "supersedes": ["macos-x86_64-qt5.6"],
       "requires": {
         "os": "macos",
@@ -302,20 +308,28 @@ build), so the variant is a name of its own, not derived from the machine.
   `requires`, and must match it; `<rest>` is lowercase letters, digits and dots, in parts
   separated by `-`. At most 64 characters.
 - Each Launcher build has its own variant ID compiled in. The Launcher matches IDs only as
-  whole strings; it never takes them apart.
+  whole strings; it never takes them apart. A variant whose `<os>` or `<arch>` the Launcher
+  doesn't know is read like any other, and never runs on that machine.
+- **`name`**: what users see when they choose between variants or switch, for example
+  `Windows, Qt 5.15`. Printable ASCII, not starting or ending with a space, 1 to 64
+  characters (added 2026-11-08).
 - **`supersedes`**: variant IDs this variant replaces. It may name variants that are no
   longer in the build (that is the usual case once an old variant is dropped). In one
   manifest, a variant ID appears in at most one `supersedes` list, a variant doesn't
   supersede itself, and there are no cycles. So from any variant there is a single chain of
   successors.
 
-Which variant a Launcher installs from a build: it follows the chain of successors from its
-own variant, and takes the furthest one whose requirements the machine meets. If none of
-them qualifies, it takes its own variant if the build has it and the machine meets its
-requirements. Otherwise the build is not for this machine, and the Launcher stays where it
-is and tells the user which requirement isn't met. This replaces the moves hard-coded in
-`getIdealPlatform()`: moving users from one variant to another is a matter of the manifest,
-not of a Launcher release.
+Which variant a Launcher installs from a build: if the user chose a variant (to stay on it,
+or to go back to it) and the build has it and the machine meets its requirements, that one.
+Otherwise it follows the chain of successors from its own variant, and takes the furthest
+one whose requirements the machine meets. If none of them qualifies, it takes its own
+variant if the build has it and the machine meets its requirements. Otherwise the build is
+not for this machine, and the Launcher stays where it is and tells the user which
+requirement isn't met. This replaces the moves hard-coded in `getIdealPlatform()`: moving
+users from one variant to another is a matter of the manifest, not of a Launcher release.
+
+`supersedes` is a default the user can opt out of (2026-11-08), see [Updater.md](Updater.md),
+System requirements.
 
 ### Requirements
 
@@ -343,6 +357,11 @@ not of a Launcher release.
 
 The values come from what the compatibility gate measures in the binaries, never written by
 hand.
+
+A requirement a reader doesn't know (a field not listed for the variant's `os`, or an `os` it
+doesn't know) is never ignored: it can't be checked, so it isn't met, and the variant isn't
+for that machine. A new kind of requirement can be added to format 1 that way: old Launchers
+just don't install the variants that have it.
 
 ### Files
 
