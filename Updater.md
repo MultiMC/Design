@@ -189,6 +189,38 @@ might be optional): `supersedes` is the default, and users can opt out of it.
 The first move is the Qt 5.6 Windows build to the Qt 5.15 one: `windows-x86-qt5.15`
 supersedes `windows-x86-qt5.6`, so Windows 7 and newer move, and XP and Vista stay.
 
+Later: Qt 6 variants (noted 2026-11-08, not planned yet). The move to Qt 6 should go through
+the same mechanism.
+
+- **Windows and macOS** bundle Qt, so a Qt 6 variant replaces the Qt 5 files like any other
+  update. Chains already work: with Qt 6 superseding Qt 5.15 and Qt 5.15 superseding Qt 5.6,
+  a Qt 5.6 install that can run Qt 6 goes straight to it.
+- **Dropping a variant in the middle of a chain** cuts it: the successor map only comes from
+  the variants in the build, so dropping Qt 5.15 while Qt 6 lists only Qt 5.15 leaves Qt 5.6
+  installs without a successor. The successor has to take over the dropped variant's
+  `supersedes` entries. hopper's validator could check a new build against the previous one
+  for this.
+- **Linux runs on the system's Qt**, and the `qt` requirement is checked against the Qt the
+  Launcher runs on (`qVersion()`), so a Qt 5 Launcher never meets a Qt 6 requirement: safe,
+  but nobody can move. The Qt 5 Launcher has to find out whether the system has a usable Qt 6
+  without loading it into the Launcher's own process. Ways to do it: find the libraries the
+  way the dynamic loader would and read their ELF symbol version definitions (as the
+  compatibility gate measures glibc and GLIBCXX), or `fork()` and `dlopen()`/`dlsym()` in
+  the child (the user's idea, 2026-11-08): a real load with `RTLD_NOW`, which also shows that
+  every dependency resolves, and no extra binary to ship. The child touches no Qt, reports
+  through a pipe and ends with `_exit()`; the parent gives it a timeout and kills it, and
+  anything but a clear answer counts as not met (`dlopen` after `fork` in a process with
+  threads isn't async-signal-safe, so a rare hang has to be survivable). Qt alone isn't enough
+  to start (the xcb platform plugin's dependencies are separate packages), so this probably
+  becomes a general requirement, a list of libraries with minimum versions, measured by the
+  gate.
+- **Order:** a requirement old Launchers don't know isn't met for them (UpdaterFormats.md,
+  Requirements). So first a Qt 5 build that can check the new requirement, and only once
+  installs have it, a Qt 6 variant that supersedes Qt 5. Launchers that haven't updated stay
+  on Qt 5, which builds still have.
+- **Open:** a user who chose to stay on a variant stays on it, so they aren't offered a newer
+  successor (Qt 6) either; whether a new successor should be offered again is to be decided.
+
 ### Relative URLs in the manifests
 
 The channel `url`s in `channels.json` and the source URLs in each version's file list are
