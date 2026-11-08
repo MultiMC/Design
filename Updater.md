@@ -214,6 +214,41 @@ the same mechanism.
   to start (the xcb platform plugin's dependencies are separate packages), so this probably
   becomes a general requirement, a list of libraries with minimum versions, measured by the
   gate.
+- **Which Qt 6 works:** any Qt 6 at least as new as the one the build is made against. Qt's
+  public symbols are in one version node (`Qt_6`), next to empty marker nodes `Qt_6.0`,
+  `Qt_6.1`, … that each include the one before; an application built against 6.N requires
+  `Qt_6.N` (through `qt_version_tag`), so the loader refuses an older Qt. The Linux Qt 5
+  build works the same way today (`MultiMC` requires `Qt_5.6`). So the compatibility gate can
+  measure the minimum like glibc's, the highest `Qt_6.N` required, and a check on the user's
+  machine only needs that node in the system's library (a `dlopen` fails without it).
+- **ABI:** Qt keeps the public API binary compatible across 6.x; the private API
+  (`Qt_6_PRIVATE_API`) changes with every minor release. The Launcher uses no private Qt
+  headers, and the Qt 6 port must keep it that way, or the Linux build is tied to one exact
+  Qt version.
+- **Aim for a recent Qt 6** (2026-11-08): the Qt 5 Linux variant stays as the fallback, so
+  machines without a new enough Qt 6 just aren't offered the move. Early 6.x releases
+  weren't ABI stable, and even 6.6.2 removed a public symbol without changing any version
+  node (`operator<<(QDebug, const QDockWidget &)`; Arch rebuilt 11 packages). Version nodes
+  are enough for the check (decided): the floor goes above that break instead of checking
+  every imported symbol, for example a later LTS such as 6.8.
+- **The floor** is the highest of: that, the newest API the Launcher uses (checked by
+  building against the floor in the toolchain image, as the Linux Qt 5 build pins 5.6), and
+  the oldest distributions to reach. As of 2026-11-08, to be checked when deciding: Ubuntu
+  22.04 has 6.2, Debian 12 and Ubuntu 24.04 6.4, Debian 13 6.8, Ubuntu 20.04 none. Newer APIs
+  can still be used without raising the floor when they're reached at runtime instead of
+  linked: following the system's dark mode needs `QStyleHints::colorScheme()` (6.5), which as
+  a `Q_PROPERTY` can be read with `property("colorScheme")` and is simply missing before.
+- **Both Qt versions in one codebase.** The Launcher then builds with Qt 5 and Qt 6 at once,
+  and the expensive part is Qt 5.6 (the XP build), not Qt 5 as such: many of the Qt 6-ready
+  replacements came late in Qt 5 (`Qt::SkipEmptyParts` and `Qt::endl` in 5.14,
+  `QFontMetrics::horizontalAdvance` in 5.11, `QNetworkReply::errorOccurred` in 5.15). So a
+  small compatibility header with wrappers chosen by `QT_VERSION`, in one place rather than
+  `#if`s through the code, and one more toolchain image, Linux with Qt 6, built on every
+  push. Once the XP build goes, the oldest Qt is 5.15 and most of that header can go too.
+- **When the Qt 5 Linux variant is retired,** the users left on it (no new enough Qt 6) get
+  the stranded variant notice.
+- **Windows and macOS** use the bundled Qt, so their limit is the operating system Qt 6
+  supports (Windows 10 and later, a recent macOS), in the variant's `os_version`.
 - **Order:** a requirement old Launchers don't know isn't met for them (UpdaterFormats.md,
   Requirements). So first a Qt 5 build that can check the new requirement, and only once
   installs have it, a Qt 6 variant that supersedes Qt 5. Launchers that haven't updated stay
