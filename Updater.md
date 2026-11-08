@@ -62,7 +62,7 @@ update into) brings:
 - signed manifests;
 - system requirement checks before an update is offered or applied.
 
-The data layout move and binary diffs are not part of it.
+The data layout move, binary diffs and fully automatic updates are not part of it.
 
 No version number marks it (2026-11-01). MultiMC is a stream of builds, and the version
 scheme (0.7.0 in the Launcher's `CMakeLists.txt`) is vestigial: a build is identified as
@@ -342,6 +342,16 @@ away from it.
 
 Material a UI could build on: every release build already writes a `manifest.json`
 (commit, build number, version, package hashes, compatibility gate results, releasable).
+
+### Fully automatic updates
+
+Requested by a user, agreed 2026-11-08. Every push to `develop` makes a build, so Latest
+users are asked to update often. An option lets the Launcher update without asking: it
+fetches and applies the update of its tier on its own. It comes after the first release.
+
+To work out then: whether it's on by default, when the update is applied (at startup or
+exit, never while an instance is running), how the user learns what changed, and whether
+the option applies to every tier or only some.
 
 ### The data layout
 

@@ -488,26 +488,45 @@ Any number of themes doesn't fit a row of card widgets. Like the instance icons 
 
 - **Import** (button on the Appearance page, or a zip dropped on it): a zip with a
   `theme.json` (a colour theme) or an `index.theme` (an icon theme), at the top or in one
-  folder. Prism's zips are the second kind and import as they are.
-  - Checked before anything is written: every entry stays inside the target folder (no
-    `..`, no absolute paths; `MMCZip::extractSubDir` doesn't check this, so the import
-    does), at most 50 MB unpacked (themes can carry images; a fixed internal limit, decided
-    2026-11-07), and `theme.json` parses.
-  - Extracted to a temporary folder, then renamed into place. An existing theme with the
-    same id is replaced only after asking.
+  folder. Prism's zips are the second kind and import as they are. The id is the folder's
+  name, or the zip's when the theme is at the top.
+  - Checked before anything lands in `themes/` or `iconthemes/`: every entry stays inside the
+    target folder (no `..`, no absolute paths), at most 50 MB unpacked (themes can carry
+    images; a fixed internal limit, decided 2026-11-07), and `theme.json` reads.
+    `MMCZip::extractSubDirLimited` counts what it actually writes, since the sizes in a zip
+    can lie.
+  - Extracted to a temporary folder next to the themes' one (out of the list's sight), then
+    renamed into place. An existing theme with the same id is replaced only after asking; a
+    zip named like a built-in theme is refused.
   - The imported theme is selected, so it shows at once.
-- **Export** (on a user theme's card): its folder as a zip, the same layout import takes.
-- **Open folder** and **Delete** (to the trash where the system has one) on user themes'
-  cards.
+- **Export**: its folder as a zip, in a folder of its name: the layout import takes.
+- **Open folder** and **Delete**: buttons under each list act on the chosen theme (Open
+  folder there opens the folder of them all), and a right-click menu on any row has them for
+  that theme, broken ones included, which can't be chosen. A right click doesn't choose the
+  row. Delete asks first and deletes the folder for good: Qt 5.6 has no trash
+  (`QFile::moveToTrash` is 5.15), like deleting instances. Deleting the chosen theme goes
+  back to the default one.
 
 ### Making one
 
-- **Customize…** on any theme's card: a copy as a user theme ("Purple (copy)"), opened in
-  the editor. Built-in themes are customized by copying, never in place (the old list's
-  "theme override" and "revert to built-in" aren't needed then).
-- **The editor:** a swatch per role (picked with `AccentColorDialog`), the log colours, and
-  the theme preview, live; Save writes `theme.json`. The stylesheet isn't edited in the
-  launcher: "Open folder" for that; the watcher applies changes as they are saved.
+- **Customize…** on any theme (the button under the list for the chosen one, or a row's
+  menu): the editor on a copy, written as a user theme ("Purple (copy)") only when saved, with
+  the original's stylesheet and `resources/`. Built-in themes are customized by copying, never
+  in place (the old list's "theme override" and "revert to built-in" aren't needed then).
+  **Edit…** opens a user theme in the editor in place.
+- **The editor:** the name; the colours in two ways (an idea of 2026-11-08):
+  - **Quick:** background, text and accent, every role following from them by rules
+    (`ThemeWriter::quickColors`: fields a step further from the text than the window, buttons
+    a little apart, text, links and errors kept readable, selected text black or white on the
+    accent). Setting one sets them all again.
+  - **Every color:** each of the 13 roles on its own, to dial it in.
+
+  The log colours on a tab of their own (unset ones show the console's colour and stay the
+  console's). A preview of a window and of the console, live. Colours are picked with
+  `AccentColorDialog`, the theme's colours suggested. Save writes `theme.json` with every role
+  (what the theme looked like in the editor is what it looks like everywhere), keeping keys we
+  don't write and dropping the ones we ignore. The stylesheet isn't edited in the launcher:
+  "Open folder" for that; the watcher applies changes as they are saved.
 
 ### Phases
 
@@ -520,8 +539,11 @@ Any number of themes doesn't fit a row of card widgets. Like the instance icons 
    live, but changes inside one already loaded need a restart: the icon loader keeps each
    theme's files once read. Theme folders named like a built-in theme (`system`, `bright`,
    `dark`) are skipped.
-2. Import and export, Open folder, Delete.
-3. Customize… and the editor.
+2. Import and export, Open folder, Delete. **Done** (2026-11-08): `ThemeArchive` in
+   `launcher/ui/themes/` (inspect, install, export; tested), the buttons and menus on the
+   Appearance page's Theme and Icons tabs.
+3. Customize… and the editor. **Done** (2026-11-08): `ThemeEditorDialog`, `ThemeWriter`
+   (tested), `ConsolePreview` shared with the Console tab.
 
 Follow-up (wanted, 2026-11-07): themes hosted for the launcher to install, from the website or
 the repository (#3873). The source is our fork of Prism's community themes,
