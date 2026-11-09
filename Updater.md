@@ -588,8 +588,21 @@ Launcher work.
   the installed Launcher moves over and lands on Stable. files2 numbers its builds
   separately, so production is not touched.
 - **Changing at the same time:** the website's downloads (new installs get the Stable
-  packages written when a tag moves, not `mmc-develop-*`) and the translations template
-  trigger (on tagging Testing or Stable).
+  packages written when a tag moves, not `mmc-develop-*`), the translations template
+  trigger (on tagging Testing or Stable), and the Linux wrapper packages.
+- **The wrapper packages** (noted 2026-11-08): the Debian package (the Packaging repo,
+  `ubuntu/`), the RPM built from the same files (`rpm/`) and the Arch package
+  (multimc-pkgbuild, which repackages the published `.deb`) all install the same
+  `run.sh`. On first start it downloads `downloads/mmc-stable-lin64.tar.gz` (or lin32), the
+  current layout's Stable frozen in 2023, and unpacks it; the Launcher then updates itself.
+  At the cutover `run.sh` downloads the new layout's Stable package instead, and new
+  versions go out: a new `.deb` on the files site (and the website's link to it), the RPM,
+  and the PKGBUILD (version, checksum, `.SRCINFO`) on the AUR. Wrappers already installed
+  only download on the first start, so nothing changes for existing installations, and old
+  wrapper versions still fetch the frozen 2023 package, which updates through the current
+  layout to the bridge build: those files have to stay. When there are Qt 6 variants, the
+  packages' dependencies (Qt 5 libraries today) need a look too. Where the wrappers go from
+  here: [LinuxPackaging.md](LinuxPackaging.md).
 
 ## Open questions
 
