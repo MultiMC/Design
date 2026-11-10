@@ -588,25 +588,103 @@ Launcher work.
   the installed Launcher moves over and lands on Stable. files2 numbers its builds
   separately, so production is not touched.
 - **Changing at the same time:** the website's downloads (new installs get the Stable
-  packages written when a tag moves, not `mmc-develop-*`), the translations template
-  trigger (on tagging Testing or Stable), and the Linux wrapper packages.
+  packages written when a tag moves, not `mmc-develop-*`) and the translations template
+  trigger (on tagging Testing or Stable). The Linux wrapper packages come later (below).
+- **The website goes last** (2026-11-09), when everything else is done and working: the
+  bridge is Stable in the new layout and published in the current one.
+- **The website offers Stable only** (2026-11-09), and one download per variant: both
+  Windows variants, each with its minimum Windows version (XP and later; Windows 7 and
+  later), not one that the updater then moves. The archive of earlier Stable versions is
+  still to be designed.
+- **The old download URLs** (2026-11-09): `downloads/mmc-develop-*` is linked from far more
+  than the website (the wiki, guides, forum posts, other sites). At the cutover they are
+  redirected (or otherwise pointed) to the new layout's Stable downloads.
+- **The new download names** (2026-11-09, not settled): `MultiMC` instead of `mmc`, no
+  branch name, the tier `stable` (the default), and the variant and/or platform, so the
+  downloads can be told apart. Whether the variant ID or the platform is still open.
+- **Telling users** (2026-11-09): an announcement at the cutover, written by Petr: what was
+  done in the past weeks, what the updater changes, what follows next, and why almost
+  nothing happened since 2022.
 - **The wrapper packages** (noted 2026-11-08): the Debian package (the Packaging repo,
   `ubuntu/`), the RPM built from the same files (`rpm/`) and the Arch package
   (multimc-pkgbuild, which repackages the published `.deb`) all install the same
   `run.sh`. On first start it downloads `downloads/mmc-stable-lin64.tar.gz` (or lin32), the
   current layout's Stable frozen in 2023, and unpacks it; the Launcher then updates itself.
-  At the cutover `run.sh` downloads the new layout's Stable package instead, and new
-  versions go out: a new `.deb` on the files site (and the website's link to it), the RPM,
-  and the PKGBUILD (version, checksum, `.SRCINFO`) on the AUR. Wrappers already installed
-  only download on the first start, so nothing changes for existing installations, and old
-  wrapper versions still fetch the frozen 2023 package, which updates through the current
-  layout to the bridge build: those files have to stay. When there are Qt 6 variants, the
-  packages' dependencies (Qt 5 libraries today) need a look too. Where the wrappers go from
-  here: [LinuxPackaging.md](LinuxPackaging.md).
+  Nothing forces them to change at the cutover: the frozen 2023 package updates through the
+  current layout to the bridge build, which moves over. They change after the updater
+  rework is in place (decided 2026-11-09), when `run.sh` (or what replaces it) downloads
+  the new layout's Stable package instead, and new versions go out: a new `.deb` on the
+  files site (and the website's link to it), the RPM, and the PKGBUILD (version, checksum,
+  `.SRCINFO`) on the AUR. The URL `run.sh` downloads from may change later, at the cost of
+  breaking old packages; they are a clunky old solution, and the aim is something better.
+  When there are Qt 6 variants, the packages' dependencies (Qt 5 libraries today) need a
+  look too. Where the wrappers go from here: [LinuxPackaging.md](LinuxPackaging.md).
+- **Packages made by others** (2026-11-09): repackaging by others has been discouraged on
+  purpose: it was usually mishandled and caused problems (sandboxing breaking things,
+  patched Launchers with piracy enabled). Still, those platforms bring visibility, so the
+  aim is better installation and delivery of our own (LinuxPackaging.md, abipak), not more
+  third-party packages.
 
 ## Open questions
 
-None at the moment.
+### The cutover (2026-11-09)
+
+- **The new download names:** the variant ID or the platform (see The cutover above for
+  what is decided).
+- **The archive of earlier Stable versions** on the website: how it's presented, and
+  whether the tag move writes an index for it.
+- **If the bridge build turns out bad in production.** Everything after the bridge can be
+  fixed with a new build in the new layout, as long as the bridge's own updater works.
+  What can't: a bridge whose new updater fails in production (a platform where it can't
+  apply, a configuration only production has). Launchers on it no longer read the
+  current layout, and nothing in the new one reaches them; they need a reinstall by hand.
+  How to rule that out before the freeze is open (being worked out).
+
+### Version numbers (2026-11-09)
+
+- **The "0.7.0" in the UI only confuses people.** Either versions mean something again, or
+  the UI shows the build number (and tier) only.
+- **How version and build numbers get into the binaries**, and that build numbers can't run
+  out. Windows version resources hold four 16-bit fields (at most 65535 each); the
+  Launcher's `branding/multimc.rc` has a fixed `1.0.0.0` today, so the build number isn't in
+  them at all yet. macOS bundles get `major.minor.hotfix.build`; `BuildConfig` keeps it as
+  an `int`. Builds are numbered around 5000 now, far from either limit, but this should be
+  checked once, and decided before the build number goes into the Windows resources.
+
+### The root keys
+
+From planning the root key ceremony (2026-11-09; the steps are in hopper's README,
+"Production's keys: the ceremony"):
+
+- **Where the two root keys are kept**, each in its own place, and where the passphrases
+  are kept, apart from them. Decided and recorded privately, not in this repo; the same
+  goes for who else holds a copy (below).
+- **The paper format:** the private key in plain (simple, but the paper must be guarded
+  like the key) or the `age`-encrypted file (needs the passphrase too).
+- **Who else can sign.** The keys document expires, and Launchers refuse an expired one.
+  If nobody can use a root key before then, every Launcher stops updating. Two root keys
+  cover losing one of them, not one person being unavailable; a key or a sealed copy with
+  a second person would.
+- **The first online key is made on the build server**, as files2's was, not offline: only
+  its public key goes into the ceremony. (Rotation above says the ceremony makes it;
+  probably the same change applies there.)
+- **YubiKeys for the root keys** (tested 2026-11-10 with a YubiKey 5 NFC, firmware 5.7.4,
+  throwaway keys in PIV slot 9c): one device per root key. The plan: make each key offline
+  with a paper copy as above, then import it (`ykman piv keys import`); a PIV key can't be
+  read back out, and the device records whether a key was generated on it or imported.
+  Both kinds gave plain Ed25519 signatures over the raw bytes, which hopper's
+  `keys/verify.py` accepts; the PIN is asked for on every signature. Signing worked through
+  ykman's Python library (`yubikit`). openssl's PKCS#11 provider (pkcs11-provider 1.3.0)
+  crashed on the freshly released OpenSSL 4.1.0, after making a correct signature; retry
+  once that settles. Either way `keys/sign.py` needs a way to sign with a YubiKey slot.
+  The second YubiKey is on its way.
+- **Follow-up: keep a working copy of the YubiKey tools** (2026-11-10), as with the
+  toolchains: a known-good, non-crashing set (`ykman`/`yubikit`, pcscd and the CCID driver,
+  and whatever signs), kept and versioned, so the ceremony and later renewals don't depend
+  on whatever a system update brings that week.
+- **An idea, not decided:** a small Ed25519 tool of our own (Zig's `std.crypto`, or
+  Monocypher as in the Launcher) in place of the `openssl` CLI in `keys/`: one static
+  binary for the offline machine, no Python or openssl version to match.
 
 ## Related
 
