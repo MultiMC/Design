@@ -676,7 +676,8 @@ From planning the root key ceremony (2026-11-09; the steps are in hopper's READM
   `keys/verify.py` accepts; the PIN is asked for on every signature. Signing worked through
   ykman's Python library (`yubikit`). openssl's PKCS#11 provider (pkcs11-provider 1.3.0)
   crashed on the freshly released OpenSSL 4.1.0, after making a correct signature; retry
-  once that settles. Either way `keys/sign.py` needs a way to sign with a YubiKey slot.
+  once that settles. hopper's `keys/sign.py` signs with a YubiKey slot through yubikit
+  (`yubikey:9c`, 2026-11-10).
   The second YubiKey is on its way.
 - **Follow-up: keep a working copy of the YubiKey tools** (2026-11-10), as with the
   toolchains: a known-good, non-crashing set (`ykman`/`yubikit`, pcscd and the CCID driver,
