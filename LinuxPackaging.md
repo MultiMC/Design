@@ -82,6 +82,30 @@ abipak's measure writes and its probe checks, so it should be one format: what t
 measures, the updater checks before offering a variant, and the tool checks before
 installing.
 
+abipak's prototype (2026-11-10, its README, The prototype) settles the shape: per library,
+its soname and every symbol version node the binaries need from it, exactly what the
+dynamic loader checks:
+
+    "libs": [
+      {"soname": "libQt5Core.so.5", "versions": ["Qt_5", "Qt_5.6"]},
+      {"soname": "libstdc++.so.6", "versions": ["CXXABI_1.3", "GLIBCXX_3.4", ..., "GLIBCXX_3.4.21"]},
+      {"soname": "libz.so.1", "versions": []}
+    ]
+
+Measured from build 5055's lin64 package, that's 12 libraries, carrying the same glibc 2.14,
+GLIBCXX 3.4.21 and Qt 5.6 floors the gate reports today, but per library and exact. Checking
+it needs no knowledge of how each library numbers its versions, and the same binary gave
+the right answer on Debian 12, Ubuntu 22.04, Fedora 41 and Arch-based CachyOS, including
+"Qt 6.4 lacks Qt_6.8" for a Qt 6.8 requirement.
+
+Proposed for the build manifest: a Linux variant's `requires` with `os`, `arch`, the
+`interpreter` and `libs`, in place of `glibc`, `glibcxx` and `qt` (Launchers that can't read
+it leave the variant out, [UpdaterFormats.md](UpdaterFormats.md), Requirements). Next, in
+order: the compatibility gate writes `libs` into the manifest's `requires`; the Launcher's
+updater checks it the way probe does (a port of probe to C++, or abipak's static binary
+shipped in the Linux builds and run as a child process); then the Linux Qt 6 build and its
+variant.
+
 ## Open questions
 
 - Where the packages are built: hopper (reproducible and checked like the releases) or by
