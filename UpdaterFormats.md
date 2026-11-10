@@ -15,6 +15,11 @@ Decided 2026-11-01. This is format 1.
   without stranding the Launchers already out there. An addition old readers must not
   ignore, or any change to a field they know, means a new format version. Requirements are
   the exception: a requirement a reader doesn't know is never ignored (see Requirements).
+  In a build manifest, a variant a reader can't read (a field it knows missing or written
+  another way, an ID it doesn't accept) is left out of that build, with the reason logged,
+  instead of failing the whole manifest (2026-11-10): later builds can describe new
+  variants differently without cutting old Launchers off from updates. The rest of the
+  manifest stays strict: the header, and the `supersedes` rules across the variants it reads.
   hopper's validator checks what the publisher writes, and refuses unknown fields: an
   addition goes into the validator with the change that writes it.
 - **Signature first.** Every document is checked against its signature before it is
@@ -245,6 +250,7 @@ One per build, for all variants.
   "type": "build",
   "format": 1,
   "build": 4312,
+  "version": "1.0.4312",
   "commit": "<40 hex digits>",
   "built": "2026-11-01T11:42:07Z",
   "variants": {
@@ -291,6 +297,9 @@ One per build, for all variants.
 (The lists of the second variant are shortened here; a real `files` list is never empty.)
 
 - `build`: the build number, the same as in the file name.
+- `version`: the build's version, `<major>.<minor>.<build>`, the same as in its binaries
+  (Updater.md, Versions). Optional: builds published before 2026-11-10 have none; readers
+  that don't know it ignore it.
 - `commit`: the Launcher commit the build was made from, lowercase, 40 hex digits.
 - `built`: when the build was made.
 - `variants`: one or more entries, keyed by variant ID. A variant missing from a build is
@@ -361,7 +370,11 @@ hand.
 A requirement a reader doesn't know (a field not listed for the variant's `os`, or an `os` it
 doesn't know) is never ignored: it can't be checked, so it isn't met, and the variant isn't
 for that machine. A new kind of requirement can be added to format 1 that way: old Launchers
-just don't install the variants that have it.
+just don't install the variants that have it. So can a variant that drops a requirement its
+`os` used to need (a Linux variant described by a list of libraries rather than `qt`): old
+Launchers can't read it and leave it out (see Principles). A variant left out is no successor
+for them either, and an installation whose own variant they can't read is told so, not that
+its variant was dropped.
 
 ### Files
 

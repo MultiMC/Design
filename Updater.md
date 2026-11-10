@@ -149,6 +149,38 @@ Translations template (2026-10-30): Laminar's `template-production` updates the 
 for translators, queued today after every production Launcher release. With tags, it
 should run when a build is tagged Testing or Stable instead.
 
+### Versions
+
+Decided 2026-11-10. The build number is what identifies a build, and it only goes up. The
+version is fixed when a build is made, and moving a tag never changes it:
+
+- **`<major>.<minor>.<build>`.** Major and minor are set by hand in the Launcher's
+  `CMakeLists.txt`, when a change deserves it; the third part is the build number. Every
+  build after a bump carries the new major and minor. There is no hotfix part: a fix is a
+  new build.
+- **Tags don't make versions.** A Stable build is "1.0.5123", not a new number: the tag
+  picks a build, and its version comes with it. Release entries that belong to the tag
+  move (release notes, AppStream `<release>` entries, store submissions, the archive page)
+  are written outside the binaries, when the tag moves.
+- **Into everything from the one triple:** the Windows version resource (`FILEVERSION` and
+  `PRODUCTVERSION` `major,minor,build,0`, the fourth part being the Microsoft Store's), the
+  macOS bundle (`CFBundleShortVersionString` and `CFBundleVersion` as `major.minor.build`,
+  three integers as the App Store wants), the version the Launcher shows and logs, the
+  release's `manifest.json` (`version_name`) and the build manifest (`version`,
+  UpdaterFormats.md).
+- **The limit** is Windows': each part is 16 bits, so build numbers stop at 65535. Both the
+  Launcher's CMake and hopper's release build refuse a higher one. Builds were around 5100
+  in 2026, a few hundred a year.
+- **Stores** (checked 2026-11-10): the Microsoft Store wants four parts of at most 65535,
+  the first not 0 (the Launcher is 1.0 since 2026-11-10, with the new updater) and the fourth
+  0; the App Store wants three integers that go up with every upload; Flathub wants
+  `<release>` entries in the AppStream metainfo, in order; Steam assigns its own build IDs.
+  All fit the scheme.
+
+A project with classic `x.y.z` versions would bump them in its source; the build that
+carries the bump is its release candidate, and its build number goes into the parts the
+stores keep for builds.
+
 ### System requirements
 
 Decided 2026-11-01. Each platform entry in a build's manifest declares what the build
@@ -252,7 +284,10 @@ the same mechanism.
 - **Order:** a requirement old Launchers don't know isn't met for them (UpdaterFormats.md,
   Requirements). So first a Qt 5 build that can check the new requirement, and only once
   installs have it, a Qt 6 variant that supersedes Qt 5. Launchers that haven't updated stay
-  on Qt 5, which builds still have.
+  on Qt 5, which builds still have. Since 2026-11-10 (before the bridge build), a variant a
+  Launcher can't read at all is left out rather than failing the build (UpdaterFormats.md,
+  Principles), so the Qt 6 variant's requirements can take whatever shape the library
+  check needs: no second cutover.
 - **Open:** a user who chose to stay on a variant stays on it, so they aren't offered a newer
   successor (Qt 6) either; whether a new successor should be offered again is to be decided.
 
@@ -639,17 +674,6 @@ Launcher work.
   apply, a configuration only production has). Launchers on it no longer read the
   current layout, and nothing in the new one reaches them; they need a reinstall by hand.
   How to rule that out before the freeze is open (being worked out).
-
-### Version numbers (2026-11-09)
-
-- **The "0.7.0" in the UI only confuses people.** Either versions mean something again, or
-  the UI shows the build number (and tier) only.
-- **How version and build numbers get into the binaries**, and that build numbers can't run
-  out. Windows version resources hold four 16-bit fields (at most 65535 each); the
-  Launcher's `branding/multimc.rc` has a fixed `1.0.0.0` today, so the build number isn't in
-  them at all yet. macOS bundles get `major.minor.hotfix.build`; `BuildConfig` keeps it as
-  an `int`. Builds are numbered around 5000 now, far from either limit, but this should be
-  checked once, and decided before the build number goes into the Windows resources.
 
 ### The root keys
 
