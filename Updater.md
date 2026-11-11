@@ -277,6 +277,15 @@ the same mechanism.
   small compatibility header with wrappers chosen by `QT_VERSION`, in one place rather than
   `#if`s through the code, and one more toolchain image, Linux with Qt 6, built on every
   push. Once the XP build goes, the oldest Qt is 5.15 and most of that header can go too.
+- **Missing Qt 6 libraries** (2026-11-11): the check knows exactly what a system lacks, per
+  library, so a Qt 5 user who could run the Qt 6 variant but for missing libraries is told:
+  at the least, what's missing and that a better Launcher would run with it. On well-known
+  distributions we've tested, the Launcher offers to install them (the packages named, the
+  user's consent, `pkexec` or the command shown), then checks again. Only missing libraries
+  qualify: a Qt 6 that is there but too old (Debian 12's 6.4 below a 6.8 floor) has no
+  package to fix it, so nothing is offered. The packages include what's loaded at run time,
+  which the check doesn't see yet (Qt's xcb platform plugin and its `libxcb-*`). This is
+  part of abipak's first stage (its README, LinuxPackaging.md).
 - **When the Qt 5 Linux variant is retired,** the users left on it (no new enough Qt 6) get
   the stranded variant notice.
 - **Windows and macOS** use the bundled Qt, so their limit is the operating system Qt 6

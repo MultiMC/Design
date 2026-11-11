@@ -2,7 +2,14 @@
 
 How the Launcher gets onto Linux machines: the wrapper packages, what they become, and how
 that grows into [abipak](https://github.com/MultiMC/abipak), a separate project. Notes from
-2026-11-09; nothing here is built yet.
+2026-11-09.
+
+abipak comes in stages (its README): first a minimal helper for the Launcher's move to
+Qt 6 on Linux (One requirement format, below), being worked on, including telling users
+about missing Qt 6 libraries and offering to install them on tested distributions
+([Updater.md](Updater.md), Qt 6 variants); then a wrapper replacing `run.sh` (Step 2 here);
+then, maybe, a support layer distributions install and integrate themselves. The wrapper
+packages' refresh (Step 1) doesn't wait for any of it.
 
 ## The wrapper packages today
 
@@ -41,7 +48,7 @@ Keep the design, fix what's there:
 
 ## Step 2: a small tool instead of run.sh
 
-The first parts of abipak, built for the Launcher: a static binary (Zig) that
+abipak's second stage, after the Qt 6 helper: a static binary that
 
 1. **probes** the host for the Launcher's requirements: finds each library the way the
    dynamic loader would and reads the symbol versions it defines, and says what's missing
@@ -69,7 +76,8 @@ The tarball on the website can become this file too.
 Once probing has proven itself (the start statistics, [Statistics.md](Statistics.md), show
 which distributions matter): turn what's missing into distribution packages and install
 them with the user's consent. How distributions answer "which package has this ABI" is in
-abipak's README.
+abipak's README (Stage 2). We integrate with the distributions that matter; elsewhere the
+tool only explains what's missing.
 
 ## One requirement format
 
