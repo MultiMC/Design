@@ -633,14 +633,28 @@ Launcher work.
 - **Order.** The replacement publisher, signing and the online key are live in production,
   and the bridge build is Stable in the new layout, before the bridge build is published in
   the current layout. Otherwise the bridge's first update check finds nothing.
-- **The freeze is enforced by hopper.** After the bridge build, the production deploy no
-  longer runs repoman, and refuses to (a setting naming the build the current layout is
-  frozen at), rather than just not doing it. Otherwise the next push to `develop` would
-  quietly publish into the frozen layout again.
-- **Rehearsed on files2 first, exactly:** install a files2 build with the toggle off, publish
-  a bridge build with it on into files2's current layout, freeze that layout, and check that
-  the installed Launcher moves over and lands on Stable. files2 numbers its builds
-  separately, so production is not touched.
+- **The freeze comes first, and is enforced by hopper** (changed 2026-11-11). The current
+  layout is frozen at the last build made with the current updater, before any build with
+  the new one exists: a setting names that build, and the deploy into the current layout
+  refuses Launcher builds from then on, rather than just not doing it. Otherwise the first
+  push to `develop` with the new updater turned on would go out to every Launcher at once,
+  as the bridge, before its updater had ever run against production.
+- **The bridge is chosen, tested and put in by hand** (2026-11-11). With the layout frozen,
+  builds with the new updater go into the new tree only. A candidate is installed from the
+  tree's own downloads on every platform and updated to a later build, with production's
+  keys and hosts; the platforms are tested side by side, with no delay between them. The
+  build that passes is tagged Stable and published, and then deployed into the current
+  layout by an explicit command, which refuses anything else: a layout that isn't frozen
+  or has moved on, a build without the new updater or without every platform, a build that
+  isn't Stable in the published tree. Nothing goes into the current layout after it.
+- **Rehearsed on files2 first, exactly** (order changed 2026-11-11): install a files2 build
+  with the toggle off, freeze files2's current layout at it, make builds with the toggle on
+  (they go into the new tree only), test one as the bridge candidate, tag it Stable, deploy
+  it into the current layout as the bridge, and check that the installed Launchers move
+  over and land on Stable. The steps are in hopper's README ("The cutover rehearsal").
+  files2 numbers its builds separately, so production is not touched. The rehearsal builds
+  `develop`: Launchers with the current updater read no other channel, so it comes after
+  the updater work is merged there.
 - **Changing at the same time:** the website's downloads (new installs get the Stable
   packages written when a tag moves, not `mmc-develop-*`) and the translations template
   trigger (on tagging Testing or Stable). The Linux wrapper packages come later (below).

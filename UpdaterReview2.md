@@ -70,11 +70,15 @@ A way to close it, using only what exists:
 4. **Only then publish B into the current layout,** by an explicit command that names the
    build (the freeze moves to B). The v1 hop itself is the path every release since 2023
    has taken, and the files2 rehearsal covers it.
-5. The current layout is one directory per platform, so step 4 can go **one platform at a
-   time** (lin64 first, say), a day apart.
 
 This needs the freeze to be a refusal with one exception, not a switch. It also settles
 N8.
+
+Agreed 2026-11-11, with the platforms tested side by side and the bridge going to all of
+them at once (no delay between platforms). Done in hopper the same day (staged, not
+committed): `CURRENT_LAYOUT_FROZEN_AT`, `files/deploy.py --bridge` and `--skip-frozen` for
+the release job. The rules are tested; a bridge deploy that goes through isn't, until the
+files2 rehearsal.
 
 ### G1, raised: tell the user when checks keep failing, and put it in the bridge
 
