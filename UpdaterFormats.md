@@ -225,7 +225,11 @@ Every tag move, publish or removal rewrites and re-signs the whole document.
 
 - `serial`: increases by at least one with every write. The Launcher stores the highest
   serial it has verified (falling back to its compiled-in floor) and refuses a lower one. An
-  equal serial is the document it has already seen.
+  equal serial is the document it has already seen. The publisher writes one higher than
+  the tree's, and never lower than the time in seconds since 1970 (2026-11-11): a tree that
+  was restored from an older state or started again is then still above every serial
+  published before, and Launchers keep accepting it. The Launcher gives the number no
+  meaning beyond its order.
 - `issued`: when the document was written. For people and logs; the Launcher doesn't make
   trust decisions on it.
 - `tags`: exactly `latest`, `testing` and `stable`, each a build number. `stable` ≤

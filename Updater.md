@@ -602,6 +602,16 @@ Launcher work.
   version it has verified, next to the Launcher (the current data layout). Each build also
   has floors for both compiled in. If the stored state is lost or broken, the Launcher falls
   back to the floors and keeps updating; that only weakens the replay protection a little.
+- **Checks that keep failing** (2026-11-11). A failed automatic check says nothing, which is
+  right for one that fails once. But whatever stops an installation from updating for good
+  (servers that moved, keys that expired, a mistake in what was published or in the build
+  itself) looks the same from the inside: every check fails. So the Launcher keeps, in its
+  settings, when a check last got a verified answer, when checks started failing and how
+  many have failed since. After 14 days and at least 3 failed checks it tells the user,
+  also on an automatic check: since when, the last error, and where to download the
+  current version (the website, which is not on the files site). It says so again every 14
+  days while it goes on. This needs nothing from the tree, so it still works when the
+  tree is what's wrong; it has to be in the bridge build.
 - **Settings.** The tier setting is new. It must not take over the existing update channel
   setting (ignored today), or `develop` users would land on Latest instead of Stable. The
   tier selector is only shown in builds with the toggle on.
