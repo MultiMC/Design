@@ -612,6 +612,35 @@ Launcher work.
   current version (the website, which is not on the files site). It says so again every 14
   days while it goes on. This needs nothing from the tree, so it still works when the
   tree is what's wrong; it has to be in the bridge build.
+- **Interrupted installs are accepted** (2026-11-12). Installing renames files that are
+  already downloaded, a window of well under a second. Something that stops the process
+  inside it (a power cut, a kill, a crash of the machine) leaves a mix of old and new files.
+  There is no journal and no recovery at the next start, on purpose: a self-updating
+  application can only recover from inside the binary that ends up in place, and only if
+  that binary still starts. The mix most likely not to start (a Qt version change, every Qt
+  library replaced at once) is exactly the one such code wouldn't reach. A mix that starts
+  is repaired by the next update when the old binary is still in place; one with the new
+  binary isn't, since it thinks it's up to date. The way out is manual and has to be on the
+  help pages: copy `update/backup` back over the installation (the replaced files are there
+  at the same paths), or download the Launcher again and unpack it over the old one (the
+  data stays). To revisit once a separate updating process exists, such as an abipak-style
+  wrapper that isn't replaced itself while it installs.
+- **Testing the way back to Stable** (2026-11-12). The tiers are there so Latest can move
+  much faster than Stable, and people will pick Latest because it's there, not because they
+  accept breakage. So the one thing every build must be able to do is go back: switch to
+  Stable and get a build that works. Weak version, first: hopper's update test runs each new
+  build headless (`--update stable`) against the tree before it's published, and back up to
+  it. Strong version, later: the new build on real test machines, every platform, with the
+  GUI coming up and the downgrade to Stable done the way users do it.
+- **The next iteration: a separate updating process** (2026-11-12). Updater 2 is still the
+  Launcher updating itself, so every build's updater has to work for the next update to
+  happen, and a broken one can only be found by testing each build (the headless --update
+  mode and hopper's update test narrow this, they don't remove it). The next iteration should
+  move updating out of the Launcher into a small wrapper that rarely changes and isn't
+  replaced while it installs: abipak's second stage (probe, fetch and deploy, run). Then a
+  broken Launcher build can't stop the next one from arriving, interrupted installs can be
+  recovered from outside, and a build that keeps crashing can be taken back to the previous
+  one (or Stable) by the wrapper, without the user having to do anything. Not started; abipak stays parked until the Linux Qt 6 variant.
 - **Settings.** The tier setting is new. It must not take over the existing update channel
   setting (ignored today), or `develop` users would land on Latest instead of Stable. The
   tier selector is only shown in builds with the toggle on.

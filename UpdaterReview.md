@@ -149,6 +149,8 @@ stay). **ok** (stale Qt plugins: **check**, minor)
   there's no journal and no recovery on the next start. If the Launcher still starts, the
   next update repairs it, because the plan compares hashes. If it doesn't, it needs a manual
   reinstall. The backup is there, but nothing uses it.
+  **Accepted 2026-11-12**, see Updater.md ("Interrupted installs are accepted"): no
+  recovery code while the Launcher updates itself; the manual way out goes on the help pages.
 
 **4.4 Live check** (`InstallController.cpp:127`, `LiveCheck.cpp`, `Application.cpp:643`).
 - The new process writes `live.check` early, before settings load. The old one waits 30 s

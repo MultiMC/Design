@@ -225,12 +225,19 @@ mirror with a real 404 is enough.
   that can't be missed (the hopper UI, a failing job from 30 days).
 - **G5.** Agreed, and the worst case is the first variant move: the Windows Qt 5.6 to 5.15
   switch replaces every Qt DLL in one apply. Still a window of milliseconds per file.
+  Accepted 2026-11-12 (Updater.md, "Interrupted installs are accepted"): recovery code would
+  run in the binary that the interruption may have broken; revisit with a separate updater
+  process.
 - **G7.** Agreed. `UPDATER_ENABLED` also needs the refspec to start with `refs/heads/`
   (`BuildConfig.cpp.in`), which hopper gets by checking out `-B <branch>`; the gate only
   looks for the keys. N5's update test covers it where it runs; for the rest, the gate could
   look for the variant ID in the binary as it does for the keys.
 - **G8.** Agreed, and Windows has the same shape: a Launcher run in compatibility mode
   sees an older Windows. Both only keep an install on its variant.
+  Fixed 2026-11-12: Windows takes the version from the kernel's shared data page, then
+  ntdll's `RtlGetNtVersionNumbers` (both real in XP, 7 and 8 modes on Windows 11; the
+  registry's CurrentBuildNumber is faked too); macOS from `kern.osproductversion` (not tried
+  on a Mac; today's builds use SDK 11.1, which doesn't get 10.16 anyway).
 - **G9, G12.** Agreed as written.
 - **G11.** Tried 2026-11-11: on both files2 hosts `tags.json`, its signature and
   `mirrors.json` come with `Cache-Control: no-store` and aren't served from the cache. To
