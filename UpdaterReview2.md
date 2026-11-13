@@ -187,6 +187,15 @@ Two things, the second covering the first:
   release gate on.) Latest could require it for the previous Latest, Stable for the
   current Stable.
 
+Done 2026-11-12/13. The continuity check is in `updater/deploy.py` and `updater/tag.py`
+(refusing a dropped variant, a new or stricter requirement; case-only and file/directory
+path changes are warnings, since the Launcher handles them now), with retirements declared
+in hopper's platform table. The update test became "the way back to Stable": each new
+Latest, headless (`--update`), goes to Stable and back up against the local tree before it
+is published (hopper's `updater/update-test.py`, in the release job). It runs Latest's own
+updater, so a build whose updater is broken is caught before it ships, which testing from
+the previous build couldn't do.
+
 ### N6. Every check needs a real 404
 
 The keys walk asks for `keys/<N+1>.json.sig` on every check and only ends when a mirror

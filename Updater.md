@@ -230,8 +230,27 @@ the same mechanism.
 - **Dropping a variant in the middle of a chain** cuts it: the successor map only comes from
   the variants in the build, so dropping Qt 5.15 while Qt 6 lists only Qt 5.15 leaves Qt 5.6
   installs without a successor. The successor has to take over the dropped variant's
-  `supersedes` entries. hopper's validator could check a new build against the previous one
-  for this.
+  `supersedes` entries. hopper checks a new build against the previous one for this (below).
+- **Continuity between builds** (2026-11-13). `updater/deploy.py` and `updater/tag.py`
+  compare the build a tag leaves with the one it goes to, and refuse a move that would leave
+  installations without an update: a variant that disappears with nothing superseding it
+  (or only successors that require more), a new requirement key, a stricter requirement.
+  `--allow-discontinuity` lets one move through when it's meant (hopper's README,
+  "Continuity between builds").
+- **Retiring a variant is declared**, not let through (2026-11-13): hopper's platform table
+  marks a platform retired, with when and why; it's never built again, and its variant
+  leaving is accepted by the continuity check. Candidates, once there's a population count:
+  the 32-bit Linux variant and Windows Qt 5.6 (XP and Vista). The count could come from the
+  files site's logs (each update downloads its own variant's content files), without
+  telemetry.
+- **Deprecation ahead of retirement** (2026-11-13): hopper's platform table marks a platform
+  deprecated, with the last day builds of it are made and why; every build then carries the
+  date in that variant (`deprecated`, UpdaterFormats.md). The Launcher on it says so, at most
+  every 14 days: "Builds of Windows, Qt 5.6, the version this installation runs, are made
+  until 1 March 2027. After that, it keeps working, but gets no more updates." When a
+  successor runs on the machine and the user chose to stay, it adds where to switch;
+  installations that move on along `supersedes` by themselves aren't told. Launchers from
+  before ignore the field. Retiring the platform is the step after that day.
 - **Linux runs on the system's Qt**, and the `qt` requirement is checked against the Qt the
   Launcher runs on (`qVersion()`), so a Qt 5 Launcher never meets a Qt 6 requirement: safe,
   but nobody can move. The Qt 5 Launcher has to find out whether the system has a usable Qt 6
@@ -471,6 +490,11 @@ away from it.
 
 Material a UI could build on: every release build already writes a `manifest.json`
 (commit, build number, version, package hashes, compatibility gate results, releasable).
+
+Next pass (to do, noted 2026-11-13): more management in hopper's web UI, in the same shape
+(a script does it, the page only calls it, with the dry-run popup and a confirmation):
+deprecating and retiring variants, starting a build by hand with a reason, and whatever else
+is only possible from a shell on the build server today.
 
 ### Fully automatic updates
 

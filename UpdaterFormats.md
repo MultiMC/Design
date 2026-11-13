@@ -326,6 +326,12 @@ build), so the variant is a name of its own, not derived from the machine.
 - **`name`**: what users see when they choose between variants or switch, for example
   `Windows, Qt 5.15`. Printable ASCII, not starting or ending with a space, 1 to 64
   characters (added 2026-11-08).
+- **`deprecated`** (optional, added 2026-11-13): the last day builds of the variant are
+  made, `YYYY-MM-DD`. The Launcher on it tells its users ahead of time, unless it moves on
+  along `supersedes` by itself; Launchers from before ignore it. A Launcher that can't read
+  the date ignores the field, not the variant. hopper writes it from its platform table and
+  its validator requires a real date. The variant is retired (left out of the builds) some
+  time after that day; that is hopper's, not the format's.
 - **`supersedes`**: variant IDs this variant replaces. It may name variants that are no
   longer in the build (that is the usual case once an old variant is dropped). In one
   manifest, a variant ID appears in at most one `supersedes` list, a variant doesn't

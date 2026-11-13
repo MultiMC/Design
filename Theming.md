@@ -183,6 +183,23 @@ XP):
   the `WM_SETTINGCHANGE "ImmersiveColorSet"` broadcast (a native event filter). With the
   System theme, title bars only switch dark or light and keep Windows' colours, so Windows
   draws the accent on them when the user turned that on.
+- **Accent and title bars are the theme's** ([#5803](https://github.com/MultiMC/Launcher/issues/5803),
+  2026-11-13). A first try put them in the settings next to the theme (an accent choice, and
+  a title bar choice with the theme's, the system's, on and off): it worked, but the Theme tab
+  was full of details while the title bar itself stayed hard to make one's own. So they went
+  into the themes, made in the theme editor, and the Theme tab only has the theme and the
+  style. The old `AccentSource`, `AccentColor` settings aren't read any more.
+  - `accent` in `theme.json`: `system` (the system's, followed live; the theme's own colour
+    where the system has none) or `custom` (the theme's own). Built-in themes: `system`.
+  - `titleBar`: `system` (only dark or light from us: Windows' own colours, and Windows' accent
+    when "Show accent color on title bars and window borders" is on), `window` (`Window`,
+    `WindowText`), `accent` (the active window's title bar and border in the accent, the
+    others the window's; Windows 11) or `custom` (`colors` `TitleBar`, `TitleBarText`).
+    Built-in themes: `system`.
+  - Themes without the keys keep their look from before: `custom` and `window`.
+  - The accent title bar takes the accent from the application palette, so a stylesheet's
+    selection colours don't change it (Borest: translucent white). The border is Windows' own
+    unless it's the accent: a darker one of ours vanished against dark windows behind.
 - **The System theme's colours.** Following only dark or light isn't enough: with our Dark
   palette (window `#31363b`) under Windows' own dark title bar (`#202020`) it didn't look
   like the system. So System uses the system's own colours where we know them
