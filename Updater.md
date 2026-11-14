@@ -789,8 +789,8 @@ From planning the root key ceremony (2026-11-09; the steps are in hopper's READM
 - **Where the two root keys are kept**, each in its own place, and where the passphrases
   are kept, apart from them. Decided and recorded privately, not in this repo; the same
   goes for who else holds a copy (below).
-- **The paper format:** the private key in plain (simple, but the paper must be guarded
-  like the key) or the `age`-encrypted file (needs the passphrase too).
+- **The paper format** (decided 2026-11-14): the `age`-encrypted key, printed (armored);
+  restoring it needs the passphrase too, which is kept apart from it.
 - **Who else can sign.** The keys document expires, and Launchers refuse an expired one.
   If nobody can use a root key before then, every Launcher stops updating. Two root keys
   cover losing one of them, not one person being unavailable; a key or a sealed copy with
@@ -808,7 +808,11 @@ From planning the root key ceremony (2026-11-09; the steps are in hopper's READM
   crashed on the freshly released OpenSSL 4.1.0, after making a correct signature; retry
   once that settles. hopper's `keys/sign.py` signs with a YubiKey slot through yubikit
   (`yubikey:9c`, 2026-11-10).
-  The second YubiKey is on its way.
+  Both YubiKeys are in hand (2026-11-13). Each signature needs the PIN and a touch
+  (`--touch-policy always` at import, decided 2026-11-14), so nothing can sign while a key is
+  merely plugged in. The PIV management key is random and kept on the YubiKey, behind the
+  PIN (`--protect`). The ceremony was run through on hopper's offline image with throwaway
+  keys (2026-11-14; hopper's README, "The offline image").
 - **Follow-up: keep a working copy of the YubiKey tools** (2026-11-10), as with the
   toolchains: a known-good, non-crashing set (`ykman`/`yubikit`, pcscd and the CCID driver,
   and whatever signs), kept and versioned, so the ceremony and later renewals don't depend
