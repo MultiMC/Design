@@ -66,7 +66,8 @@ The data layout move, binary diffs and fully automatic updates are not part of i
 
 No version number marks it (2026-11-01). MultiMC is a stream of builds, and the version
 scheme (0.7.0 in the Launcher's `CMakeLists.txt`) is vestigial: a build is identified as
-MultiMC 5, its platform, and its build number.
+MultiMC 5, its platform, and its build number. (Changed since: builds have versions,
+`5.<minor>.<build>`, see Versions; the first release still isn't marked by one.)
 
 ## Cutover
 
@@ -154,11 +155,19 @@ should run when a build is tagged Testing or Stable instead.
 Decided 2026-11-10. The build number is what identifies a build, and it only goes up. The
 version is fixed when a build is made, and moving a tag never changes it:
 
-- **`<major>.<minor>.<build>`.** Major and minor are set by hand in the Launcher's
-  `CMakeLists.txt`, when a change deserves it; the third part is the build number. Every
-  build after a bump carries the new major and minor. There is no hotfix part: a fix is a
-  new build.
-- **Tags don't make versions.** A Stable build is "1.0.5123", not a new number: the tag
+- **`5.<minor>.<build>`** (2026-11-14; `1.0.<build>` from 2026-11-10 until then). The 5 of
+  "MultiMC 5" moved from the name into the version: the Launcher is called MultiMC, and its
+  version starts with 5. The major version changes only for a break (the data layout move,
+  say). The minor version is set by hand in the Launcher's `CMakeLists.txt`, and goes up
+  **when work on a bigger user-facing change starts**, not when it ships: the builds working
+  towards it carry it on Latest, and Stable gets it when one of them is promoted (Latest on
+  `5.1.x` while Stable is still `5.0.x` is normal). A minor version is never taken back, even
+  if the work is dropped. The third part is the build number. There is no hotfix part: a fix
+  is a new build.
+- **The build number never restarts**, whatever the other parts do: it is what the updater
+  orders builds by (the tags, "newer" and "older" in the tier decision, the archives, the old
+  updater's `!=`), and the App Store needs it to go up.
+- **Tags don't make versions.** A Stable build is "5.0.5123", not a new number: the tag
   picks a build, and its version comes with it. Release entries that belong to the tag
   move (release notes, AppStream `<release>` entries, store submissions, the archive page)
   are written outside the binaries, when the tag moves.
@@ -172,7 +181,7 @@ version is fixed when a build is made, and moving a tag never changes it:
   Launcher's CMake and hopper's release build refuse a higher one. Builds were around 5100
   in 2026, a few hundred a year.
 - **Stores** (checked 2026-11-10): the Microsoft Store wants four parts of at most 65535,
-  the first not 0 (the Launcher is 1.0 since 2026-11-10, with the new updater) and the fourth
+  the first not 0 (the Launcher is 5.0 since 2026-11-14) and the fourth
   0; the App Store wants three integers that go up with every upload; Flathub wants
   `<release>` entries in the AppStream metainfo, in order; Steam assigns its own build IDs.
   All fit the scheme.

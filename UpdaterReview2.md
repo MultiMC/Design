@@ -232,6 +232,10 @@ mirror with a real 404 is enough.
   fails, a full copy of the changed files each time.
 - **G3.** Agreed. The 90-day warning is a log line in a release job; it should be something
   that can't be missed (the hopper UI, a failing job from 30 days).
+  Deferred 2026-11-14: this needs a way of telling the maintainer about important things
+  that can't be dismissed or forgotten, which is a project of its own and on the long-term
+  list. Until then the log line stays; a keys document lasts about two years, so the first
+  production one is years from expiring.
 - **G5.** Agreed, and the worst case is the first variant move: the Windows Qt 5.6 to 5.15
   switch replaces every Qt DLL in one apply. Still a window of milliseconds per file.
   Accepted 2026-11-12 (Updater.md, "Interrupted installs are accepted"): recovery code would

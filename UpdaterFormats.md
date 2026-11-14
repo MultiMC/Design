@@ -254,7 +254,7 @@ One per build, for all variants.
   "type": "build",
   "format": 1,
   "build": 4312,
-  "version": "1.0.4312",
+  "version": "5.0.4312",
   "commit": "<40 hex digits>",
   "built": "2026-11-01T11:42:07Z",
   "variants": {
