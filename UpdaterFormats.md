@@ -199,6 +199,11 @@ How a Launcher uses them:
 - It fetches `keys/<known + 1>.json` and checks it against the known document's `root_keys`,
   and so on, one version at a time, until the next version isn't there. The intermediate
   documents may have expired; only the newest one has to be valid now.
+- "Isn't there" means an HTTP 404 for its signature, `keys/<N>.json.sig`, from at least one
+  mirror; any other answer (403, 410, a redirect, an error page with 200, no answer) counts
+  as that mirror failing. So every host that serves the tree must answer a missing file
+  with a real 404, or at least one must, or every update check fails. Every check asks
+  every mirror for it. hopper checks it after each publish (its README, `files/publish.py`).
 - It never accepts a version lower than the one it has stored.
 - If the newest keys document it can get has expired, it does not update, and tells the user
   why.

@@ -210,6 +210,10 @@ mirror with a real 404 is enough.
   keys version must be a 404 on every base URL.
 - A correction to the first review (3.2): the walk ends when *any* mirror said 404 and the
   others failed in whatever way, not when every mirror said it.
+- Done 2026-11-14: UpdaterFormats.md says it (The keys document), and hopper's
+  `files/publish.py` asks every base URL for the next keys document's signature after each
+  publish, with the Launcher's user agent: no 404 anywhere fails the run, a host that
+  answers otherwise is a warning. files2's two hosts answer 404.
 - Cost, not a strand: the 404 from the files server doesn't end it, the bucket is asked
   too. So every check of every Launcher makes one request to the bucket, which the mirror
   order was meant to avoid.
