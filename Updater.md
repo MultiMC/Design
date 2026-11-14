@@ -729,9 +729,22 @@ Launcher work.
 - **The old download URLs** (2026-11-09): `downloads/mmc-develop-*` is linked from far more
   than the website (the wiki, guides, forum posts, other sites). At the cutover they are
   redirected (or otherwise pointed) to the new layout's Stable downloads.
-- **The new download names** (2026-11-09, not settled): `MultiMC` instead of `mmc`, no
-  branch name, the tier `stable` (the default), and the variant and/or platform, so the
-  downloads can be told apart. Whether the variant ID or the platform is still open.
+- **The new download names** (decided 2026-11-14), in `downloads/`, named by variant ID:
+  `MultiMC-<variant>.<ext>` for Stable (what the website offers, e.g.
+  `MultiMC-windows-x86-qt5.15.zip`), `MultiMC-<tier>-<variant>.<ext>` for Testing and
+  Latest, and `archive/<version>/MultiMC-<version>-<variant>.<ext>` for every build that has
+  been Stable. Variant IDs, not hopper's platform names: they are what manifests, the
+  Launcher and its logs use, and are meant to stay. Every name starts with `MultiMC-`, so
+  none collide with the current layout's `mmc-*`. The old `mmc-develop-<platform>` URLs are
+  pointed at these (hopper's platform table maps platforms to variants). The website is
+  updated to these at the cutover (its own follow-up).
+- **The branch becomes `main`** (decided 2026-11-14), after the cutover: the Launcher
+  hasn't been doing `develop` for a long time. Not before: the bridge goes into the current
+  layout's `develop` channel exactly as tested. What changes then: the Launcher's version
+  string (it adds `-<branch>` for any branch but `develop`), hopper's `LAUNCHER_BRANCH` and
+  the Laminar triggers, the GitHub default branch (open PRs follow, local clones and the
+  build server's mirror need the new name). The old updater's code and the frozen layout
+  keep `develop`.
 - **Telling users** (2026-11-09): an announcement at the cutover, written by Petr: what was
   done in the past weeks, what the updater changes, what follows next, and why almost
   nothing happened since 2022.
@@ -759,8 +772,6 @@ Launcher work.
 
 ### The cutover (2026-11-09)
 
-- **The new download names:** the variant ID or the platform (see The cutover above for
-  what is decided).
 - **The archive of earlier Stable versions** on the website: how it's presented, and
   whether the tag move writes an index for it.
 - **If the bridge build turns out bad in production.** Everything after the bridge can be
