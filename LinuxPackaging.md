@@ -13,25 +13,29 @@ packages' refresh (Step 1) doesn't wait for any of it.
 
 ## The wrapper packages today
 
-Three packages, all installing the same small wrapper:
+Three packages, all installing the same small wrapper (1.8 since 2026-11-15):
 
-- **Debian, Ubuntu:** the Packaging repo's `ubuntu/` (built by hand with `dpkg-deb`; the
-  published one is `downloads/multimc_1.6-1.deb` on the files site, linked from the
-  website, while the repo's `control` says `1.6-2`).
-- **Fedora, RHEL:** the Packaging repo's `rpm/`, built from the same files.
-- **Arch:** the multimc-pkgbuild repo, on the AUR, which repackages the published `.deb`
-  (checked with `sha1sums`).
+- **Debian, Ubuntu:** the Packaging repo's `ubuntu/`, built with `dpkg-deb` in a Debian
+  container from the committed files (the same bytes each time); the published one is
+  `downloads/multimc_1.8-1.deb` on the files site, linked from the website.
+- **Fedora, RHEL:** the Packaging repo's `rpm/`, built from the same files (1.8 not built
+  or published yet).
+- **Arch:** `multimc-bin` on the AUR, maintained by someone else, which repackages the
+  published `.deb`. Our multimc-pkgbuild repo, its source until then, was retired and
+  archived on 2026-11-15; its last PKGBUILD (1.8) is what the AUR package needs.
 
 They install a desktop file, the metainfo, an icon, the man page and `opt/multimc/run.sh`.
-On first start `run.sh` downloads `downloads/mmc-stable-lin64.tar.gz` (or lin32), the
-current layout's Stable package frozen in 2023, with `wget` and a `zenity` progress
-window, and unpacks it into `~/.local/share/multimc`. The Launcher updates itself from
-there. Later starts only run it.
+On first start `run.sh` downloads the new updater's Stable package,
+`downloads/MultiMC-linux-x86_64-qt5.tar.gz` (or `linux-x86-qt5`), with `wget` and a
+`zenity` progress window, and unpacks it into `~/.local/share/multimc`. The Launcher updates
+itself from there. Later starts only run it. Wrappers before 1.8 download the current
+layout's `mmc-stable-*` package, frozen in 2023, which updates to the bridge build and moves
+over.
 
 What's wrong with it:
 
 - the first download isn't verified (only TLS), unlike everything the updater fetches;
-- new installations start from a 2023 build, and depend on the current layout for good;
+- (fixed in 1.8) new installations started from a 2023 build, through the current layout;
 - the dependencies are written by hand in three places, and drift (`zenity` and `wget` only
   for the download; `openjdk-8-jre` recommended long after it stopped mattering);
 - three packages built three ways, none of it reproducible or checked.

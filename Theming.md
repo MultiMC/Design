@@ -216,8 +216,19 @@ XP):
     Dark mode's alternate row is white at 5% opacity, drawn over the list: it's mixed over
     the field colour, since a palette colour is drawn opaque (it came out solid white in the
     Launcher's first run, 2026-11-07).
-  - Linux (Fusion): the portal has no colours, so our Bright or Dark; KDE-like desktops get
-    their real colours through Native.
+  - Linux (Fusion): the portal has no colours. On KDE (`KDE_FULL_SESSION`, or KDE in
+    `XDG_CURRENT_DESKTOP`) the colour scheme is read from `kdeglobals` (`[Colors:Window]`,
+    `View`, `Button`, `Selection`, `Tooltip`: "r,g,b"), as KDE applications read it, and
+    followed as it changes (a watch on the file and its folder: KDE writes it anew). Before
+    that (until 2026-11-15) Fusion got our Bright or Dark, so a scheme like Sweet only showed
+    with Breeze, and editing the System theme started from the wrong colours. Elsewhere,
+    our Bright or Dark.
+  - KDE's platform plugin sets the application palette itself on a scheme change (unless
+    `KDE_COLOR_SCHEME_PATH` is set), which put the desktop's colours over our themes and,
+    for the System theme on Breeze, left Qt's widget class palettes stale (Qt renews them
+    only while no palette has been set: `AA_SetPalette`). `ThemeManager` applies the theme
+    again after any palette change it didn't make. Checked on Xvfb with a D-Bus session of
+    its own, a copy of `kdeglobals`, and KDE's `notifyChange` signal sent there.
 - **Accent, for every theme:** the theme's own, the system's (followed live), or a custom one
   from Qt's `QColorDialog`. The System theme's own accent is the system's.
   - Windows' accent and its shades: `AccentPalette` (8 × RGBA, Light3 to Dark3) under

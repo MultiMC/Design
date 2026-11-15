@@ -257,8 +257,14 @@ mirror with a real 404 is enough.
   on a Mac; today's builds use SDK 11.1, which doesn't get 10.16 anyway).
 - **G9, G12.** Agreed as written.
 - **G11.** Tried 2026-11-11: on both files2 hosts `tags.json`, its signature and
-  `mirrors.json` come with `Cache-Control: no-store` and aren't served from the cache. To
-  repeat on production's hosts once the tree is there.
+  `mirrors.json` come with `Cache-Control: no-store` and aren't served from the cache.
+  Production, 2026-11-15, after the bridge: on the bucket's host the same (`DYNAMIC`); on the
+  files server's host Cloudflare caches `tags.json`, its signature and `mirrors.json`
+  anyway (`HIT`, `Age` over an hour, despite `no-store`), so a cache rule there overrides
+  the origin. A missing keys document isn't cached (`BYPASS`). It works only because
+  `files/publish.py` purges what changed; a failed purge would leave the old tags served
+  from there until the cache expires, and that publish would fail, so the job does too.
+  Accepted: the purge is enough, and the bucket's host has the new tags either way.
 
 ## What looked right
 
