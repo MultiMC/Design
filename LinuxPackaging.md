@@ -18,8 +18,10 @@ Three packages, all installing the same small wrapper (1.8 since 2026-11-15):
 - **Debian, Ubuntu:** the Packaging repo's `ubuntu/`, built with `dpkg-deb` in a Debian
   container from the committed files (the same bytes each time); the published one is
   `downloads/multimc_1.8-1.deb` on the files site, linked from the website.
-- **Fedora, RHEL:** the Packaging repo's `rpm/`, built from the same files (1.8 not built
-  or published yet).
+- **Fedora, RHEL:** the Packaging repo's `rpm/`, built from the same files with `rpmbuild`
+  in a Fedora container (no dist tag, build time and file times from the commit: the same
+  bytes each time); `downloads/MultiMC5-1.8-1.noarch.rpm`, the first one published (before
+  that, users built it themselves), linked from the website.
 - **Arch:** `multimc-bin` on the AUR, maintained by someone else, which repackages the
   published `.deb`. Our multimc-pkgbuild repo, its source until then, was retired and
   archived on 2026-11-15; its last PKGBUILD (1.8) is what the AUR package needs.
