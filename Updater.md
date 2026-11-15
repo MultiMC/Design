@@ -147,8 +147,9 @@ tag model, builds would be stored by build number, and the tag move would update
 channel and write that channel's downloads from the chosen build.
 
 Translations template (2026-10-30): Laminar's `template-production` updates the template
-for translators, queued today after every production Launcher release. With tags, it
-should run when a build is tagged Testing or Stable instead.
+for translators. Until 2026-11-15 it was queued after every production Launcher release;
+since then the tag job queues it when Testing or Stable moves, and it takes the strings from
+Testing's build (hopper's README, "The template").
 
 ### Versions
 
