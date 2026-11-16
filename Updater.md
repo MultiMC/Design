@@ -230,6 +230,9 @@ might be optional): `supersedes` is the default, and users can opt out of it.
 
 The first move is the Qt 5.6 Windows build to the Qt 5.15 one: `windows-x86-qt5.15`
 supersedes `windows-x86-qt5.6`, so Windows 7 and newer move, and XP and Vista stay.
+Paused on 2026-11-16: the Qt 5.15 build crashed a few seconds after start for a user on
+Windows 10 (19045), where the Qt 5.6 build runs fine, even on top of the Qt 5.15 files. New
+builds list no `supersedes` until that's found; the move comes back after the fix.
 
 Later: Qt 6 variants (noted 2026-11-08, not planned yet). The move to Qt 6 should go through
 the same mechanism.
