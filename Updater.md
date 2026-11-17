@@ -774,6 +774,29 @@ Launcher work.
 
 ## Open questions
 
+### Policy in the build manifests (2026-11-16)
+
+A design mistake, found when the Qt 5.15 Windows build crashed for a user and the switch to
+it had to be paused. The server side's formats weren't reviewed field by field before they
+were built, and a build manifest mixes two kinds of data:
+
+- **Facts about the build**, fixed once it's made: its files, links and requirements.
+- **Policy**, decided separately and changing on its own schedule: which variant supersedes
+  which (`supersedes`), until when a variant is made (`deprecated`), and arguably the name
+  users see (`name`).
+
+The Launcher reads the policy from the build it updates to, so changing it means a new
+build and moving every tier to it. Pausing the Qt 5.15 switch took a new build promoted
+to Testing and Stable at once; a manifest can't be changed after it's signed, and a Stable
+build can't be replaced in place.
+
+Policy belongs in its own signed document, next to the tags document and moved like it
+(with a serial, by the online key, published whenever it changes), which the Launcher
+reads with the tags. Build manifests keep only the facts. Not designed yet: it starts with
+going over every format of the tree (UpdaterFormats.md) field by field (what each field
+is, why it's there, who writes it and when it can change), then the move for Launchers
+that read `supersedes` and `deprecated` from manifests today.
+
 ### The cutover (2026-11-09)
 
 - **The archive of earlier Stable versions** on the website: how it's presented, and
