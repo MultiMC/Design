@@ -391,6 +391,37 @@ one change.
 
 Parts marked in the code's comments go away with a newer Qt.
 
+### The instance tool bar (2026-11-17)
+
+The side panel (the selected instance's icon, name and actions) is a Qt tool bar, and it has
+had a jank for over a decade: with the window short, the name slides into the icon, more or less
+as the window's height changes.
+
+- **Why:** Qt 5's `QToolBarLayout` decides what fits by the items' minimum heights against the
+  whole tool bar, then lays them out in that length minus its extension button. To make the
+  room it drops one item; when that's a separator, the rest still don't fit, and `qGeomCalc`
+  takes the shortfall from the item with the biggest minimum, the icon, below its minimum.
+  The icon stays its size (a widget's minimum holds), but the items after it are placed as if
+  it had shrunk: the name moves up into it, by up to the extension button's height (20 pixels
+  with Breeze, a few with Fusion). Seen on Xvfb by logging the buttons' geometry through a slow
+  resize: their heights never changed, the name's position did. No size or minimum on the
+  buttons avoids it.
+- **Fixed:** the icon and name buttons can't be squeezed below what's on them any more
+  (`LabeledToolButton`: a minimum from the label, the wrapped name's height at the button's
+  width), which cut the icon off and clipped long names.
+- **Tried and parked: our own panel.** The tool bar's only item a widget laying out the
+  header and the buttons itself, the rest in a More menu: Launcher branch
+  `feature/panel_experiment`. It ended the sliding, kept the look of the themes
+  with tool bar rules (Renoise, Fluent-Dark, Borest), but:
+  - the tool bar's animated expansion is gone;
+  - the More menu opened as a ghost (its effects, unpainted) for a long while;
+  - the More button took the room of two buttons, so two went at once;
+  - it changes the widget tree custom themes see (`#instancePanel` between the tool bar and the
+    buttons, `QToolButton#instancePanelMore` for `QToolBarExtension`).
+
+  Styles and themes tie these widgets into a lot of dependencies; fixing this properly belongs
+  to a UI rework that leaves Qt 5 and its constraints behind, not to the theming work.
+
 ## Custom themes: what others did
 
 Custom themes are only offered when customized now, and were limited before (one folder,
