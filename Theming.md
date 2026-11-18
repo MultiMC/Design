@@ -422,6 +422,26 @@ as the window's height changes.
   Styles and themes tie these widgets into a lot of dependencies; fixing this properly belongs
   to a UI rework that leaves Qt 5 and its constraints behind, not to the theming work.
 
+### Instance icons (2026-11-17)
+
+Instance icons come from anywhere (modpack platforms, users), at any size and shape, and the
+view shows them from 16 to 256 pixels. Each is fit once per size and state, and cached
+(`fittedIcon` in `InstanceDelegate.cpp`):
+
+- **Transparent margins are trimmed:** what's at least a tenth opaque is what's fit to the
+  square, its shape kept. GT New Horizons' logo came as 370×220 with the logo 274×208 in it, and
+  as 42×42 with it 42×31: fit by the whole image, one showed at two thirds of the other's size.
+  Built-in icons have padding and shadows of their own (they fill 84–98% of their square);
+  trimmed, they all fill it the same way.
+- **The biggest image the icon has** is the source (QIcon only scales its images down); an icon
+  drawn at any size (SVG) is drawn at the size shown.
+- **Sharp or smooth, by the source's size:** 32 pixels or less (Minecraft's textures, the
+  built-in 32 pixel icons) enlarged twice or more is sharp: the largest whole factor with nearest
+  pixels, then smoothly for the rest, so pixels stay crisp and equal. Anything else is smooth,
+  shrinking always. No measure of the content told pixel art from pictures: equal neighbouring
+  pixels, the number of colours and soft alpha edges all overlapped between them (the built-in
+  128 pixel icons are pixel art with soft shadows; the 32 pixel creeper face has noisy greens).
+
 ## Custom themes: what others did
 
 Custom themes are only offered when customized now, and were limited before (one folder,
