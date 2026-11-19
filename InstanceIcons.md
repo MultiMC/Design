@@ -181,15 +181,23 @@ An icon has a source, and its key is the source and a name within it:
 - **Open:** what happens to instances using a pack's icon when the pack is removed: the default
   icon, or keep a copy?
 
-### 3. Loading: small, lazy, capped
+### 3. Loading: small, lazy, capped (done 2026-11-19)
 
-- Our own `QIconEngine` for icon files: reads only the header when listed; decodes on first use,
-  straight to at most 512 pixels on the long side (`QImageReader::setScaledSize`), and keeps only
-  that. About 1 MB per icon at most, whatever the file; nothing decoded until shown: **#2317,
-  #2811**.
-- The picker shows what's in view only (it already does; with lazy decoding it stays cheap).
+- `CappedIconEngine` (`launcher/icons/CappedIconEngine.{h,cpp}`), our `QIconEngine` for raster
+  icon files, made by `IconUtils::fromFile` for every file in the icons folder: reads only the
+  header when listed; decodes on first draw, straight to at most 512 pixels on the long side
+  (`QImageReader::setScaledSize`), into a cache of 64 MB shared by all of them (least recently
+  used out first, decoded anew when needed). The cache key holds the file's modification time,
+  so an edited file is read again. SVG and ICO files stay plain `QIcon`s (vector, multi-size).
+- Measured on Xvfb, an icons folder of 60 images of 3000×3000 pixels: 2.2 GB at start before
+  (every file decoded whole as the list loaded, before anything was drawn), 152 MB after;
+  160 MB with the icon picker open, 217 MB after scrolling the picker past all 60 (the cache
+  full, and bounded): **#2317, #2811**.
+- The instance view now repaints when an icon file changes (it didn't before: the new icon
+  showed only once something else repainted it).
 - **Open:** also skip files over a size in bytes (a 200 MB TIFF), or images over some pixel
-  count, as broken rather than icons?
+  count, as broken rather than icons? Their header is still read, and they're decoded once
+  when drawn.
 
 ### 4. One way to fit icons
 
@@ -226,7 +234,8 @@ Per the working rules, these get reviewed with the user one field at a time befo
 
 Small, independent steps first, each useful alone:
 
-1. Lazy, capped loading (3): fixes the memory issues without changing any key.
+1. Lazy, capped loading (3): fixes the memory issues without changing any key. Done
+   2026-11-19.
 2. Fitting everywhere, the game's `icon.png` square (4): #3820.
 3. Picker fixes that don't need namespaces: the right folder (#2845), extensions (#3702),
    default icon (#4368), rename (#2101).
